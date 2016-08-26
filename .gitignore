@@ -1,0 +1,4 @@
+*.o
+calculon
+in.txt
+testvalue/*
