@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <assert.h>
 #include "scanner.h"
-#include "value.h"
 #include "linked_list.h"
 #include "queue.h"
 #include "element.h"
@@ -99,8 +98,11 @@ void* readData(FILE *f){
 	v = newElementDouble(atof(str));
       else if (*str == '-' || isdigit(*str))
 	v = newElementInteger(atoi(str));
+      else if (!isalpha(*str) || strcmp(str,ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0)
+	v = newElementOperator(str);
       else
-	v = newElementVariable(str);//TODO VARIABLES AREN'T QUOTED, ARE THEY? OR SHOULD WE HAVE A EXIT(FAIL) HERE?
+	v = newElementVariable(str);
+      str = NULL;//completely unneccessary, but it makes me happy.
     }
     if (v != NULL)
       enqueue(queue, v);
@@ -118,7 +120,27 @@ int main(int argc, char **argv) {
   int i = 0;
   while (size(infix)>0){//TODO TEMPORARY FOR DEBUGGING
     Element *e = (Element *)dequeue(infix);
-    printf("%i: %s\n",i,e->valueString);
+    printf("%i: ",i);
+    switch(e->type){
+    case ELEMENT_TYPE_INTEGER:
+      printf("%i\n",e->valueInteger);
+      break;
+    case ELEMENT_TYPE_DOUBLE:
+      printf("%f\n",e->valueDouble);
+      break;
+    case ELEMENT_TYPE_STRING:
+      printf("\"%s\"\n",e->valueString);
+      break;
+    case ELEMENT_TYPE_VARIABLE:
+      printf("(variable named) %s\n",e->valueVariable);
+      break;
+    case ELEMENT_TYPE_OPERATOR:
+      printf("(operator) %c\n",e->valueOperator);
+      break;
+    default:
+      printf("THIS SHOULD NEVER HAPPEN!!!\n");
+      exit(EXIT_FAILURE);
+    };
     i++;
   }
   /*
