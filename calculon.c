@@ -106,6 +106,7 @@ void* readExpression(FILE *f){
       enqueue(queue, v);
   }
   return queue;
+  
 }
 
 
@@ -116,23 +117,28 @@ int main(int argc, char **argv) {
     return 0;
   }
   void* infix = readExpression(args->file);
-  int i = 0;
-  
-  while (size(infix)>0){//TMP
-    Element *e = (Element *)dequeue(infix);
-    char *text = elementToString(e);
-    printf("%i: %s\n",i,text);
-    free(text);
-    i++;
+  int i;
+  while (size(infix) != 0) {
+    i = 0;
+    while (size(infix)>0){//TMP
+      Element *e = (Element *)dequeue(infix);
+      char *text = elementToString(e);
+      printf("%i: %s\n",i,text);
+      free(text);
+      i++;
+    }
+
+    /*
+      quene* postfix = convert(infix);
+      if (args->printPostfix){
+      printf(toString(postfix));
+      return 0;
+      }
+      stack* reversePostfix = reverse(postfix);
+      printf(evaluate(reversePostfix));
+    */
+    printf("\n"); //separates the expressions to make the output easier to read
+    infix = readExpression(args->file);
   }
-  /*
-  quene* postfix = convert(infix);
-  if (args->printPostfix){
-    printf(toString(postfix));
-    return 0;
-  }
-  stack* reversePostfix = reverse(postfix);
-  printf(evaluate(reversePostfix));
-  */
   return 0;
 }
