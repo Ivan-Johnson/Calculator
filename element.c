@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
 #include "element.h"
+
 
 Element *newElement(){//private function
   Element *e = malloc(sizeof (Element));
@@ -11,18 +14,10 @@ Element *newElement(){//private function
   return e;
 }
 
+//TODO make const/extern (in .h)
+const char ELEMENT_OPERATOR_VARIABLE_DECLARATION[] = "var";//"var" is stored as a v
+const char ELEMENT_VALID_OPERATORS[] = "()=+-*/%^v;";
 
-/*
-typedef enum elementType{INTEGER, DOUBLE, STRING, VARIABLE};
-
-typedef struct element {
-  elementType type;
-  int valueInteger;
-  double valueDouble;
-  char *valueString;//yes, it is unneccessary to have both a valueString and valueVariable, but it make code more readable
-  char *valueVariable;
-}
-//*/
 Element *newElementInteger(int i){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_INTEGER;
@@ -47,5 +42,15 @@ Element *newElementVariable(char* variableName){
   e->valueVariable = variableName;
   return e;
 }
-
+Element *newElementOperator(char* str){
+  Element *e = newElement();
+  e->type = ELEMENT_TYPE_OPERATOR;
+  assert(strchr(ELEMENT_VALID_OPERATORS, *str));
+  e->valueOperator = *str;
+  if (e->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION)
+    assert(strcmp(str, ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0);
+  else
+    assert(strlen(str) == 1);
+  return e;
+}
 
