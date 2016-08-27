@@ -7,13 +7,14 @@
 char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
   int defaultLength = 15;
   int totalLength;
-  char *text = malloc(sizeof(char) * defaultLength);//TODO FREE THIS AFTER THE IF
+  char *text = malloc(sizeof(char) * defaultLength);
   
   switch(e->type){
   case ELEMENT_TYPE_INTEGER:
     totalLength = snprintf(text, defaultLength, "(int) %i", e->valueInteger);
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
+    free(text);
     text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
     snprintf(text, totalLength, "(int) %i", e->valueInteger);
     return text;
@@ -21,6 +22,7 @@ char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
     totalLength = snprintf(text, defaultLength, "(double) %f", e->valueDouble);
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
+    free(text);
     text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
     snprintf(text, totalLength, "(double) %f", e->valueDouble);
     return text;
@@ -28,6 +30,7 @@ char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
     totalLength = snprintf(text, defaultLength, "\"%s\"", e->valueString);
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
+    free(text);
     text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
     snprintf(text, totalLength, "\"%s\"", e->valueString);
     return text;
@@ -35,6 +38,7 @@ char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
     totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariable);
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
+    free(text);
     text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
     snprintf(text, totalLength, "(var) %s", e->valueVariable);
     return text;
@@ -43,6 +47,7 @@ char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
     totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
+    free(text);
     text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
     snprintf(text, totalLength, "(operator) %c", e->valueOperator);
     return text;
