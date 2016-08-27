@@ -14,7 +14,7 @@ const char* NAME = "Ivan T. Johnson";
 const char* FLAG_SHOWNAME="v";
 const char* FLAG_PRINTPOSTFIX="d";
 
-
+//TODO MAKE SURE USING MALLOC PROPERLY; ESP. SIZEOF(CHAR)*WHATEVER
 /*
 char* strCat (char* arg1, char* arg2){
   char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
@@ -77,16 +77,11 @@ parsedArgs *processArguments (int argc, char **argv){
   return args;
 }
 
-void* readData(FILE *f){
+void* readExpression(FILE *f){
   Element *v=NULL;
   void* queue = new_queue();
   
-  //TODO PROBABLY NOT HOW LUSTH EXPECTS US TO DO THIS
-  
-  
-  
-  while (!feof(f))
-  {
+  while (!feof(f)) {
     if (stringPending(f)){
       v = newElementString(readString(f));
     } else {
@@ -99,7 +94,10 @@ void* readData(FILE *f){
       else if (*str == '-' || isdigit(*str))
 	v = newElementInteger(atoi(str));
       else if (!isalpha(*str) || strcmp(str,ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0)
-	v = newElementOperator(str);
+	if (*str == ';')
+	  return queue;
+	else
+	  v = newElementOperator(str);
       else
 	v = newElementVariable(str);
       str = NULL;//completely unneccessary, but it makes me happy.
@@ -110,37 +108,21 @@ void* readData(FILE *f){
   return queue;
 }
 
+
 int main(int argc, char **argv) {
   parsedArgs *args = processArguments(argc, argv);
   if (args->printName){
     printf("%s",NAME);
     return 0;
   }
-  void* infix = readData(args->file);
+  void* infix = readExpression(args->file);
   int i = 0;
-  while (size(infix)>0){//TODO TEMPORARY FOR DEBUGGING
+  
+  while (size(infix)>0){//TMP
     Element *e = (Element *)dequeue(infix);
-    printf("%i: ",i);
-    switch(e->type){
-    case ELEMENT_TYPE_INTEGER:
-      printf("%i\n",e->valueInteger);
-      break;
-    case ELEMENT_TYPE_DOUBLE:
-      printf("%f\n",e->valueDouble);
-      break;
-    case ELEMENT_TYPE_STRING:
-      printf("\"%s\"\n",e->valueString);
-      break;
-    case ELEMENT_TYPE_VARIABLE:
-      printf("(variable named) %s\n",e->valueVariable);
-      break;
-    case ELEMENT_TYPE_OPERATOR:
-      printf("(operator) %c\n",e->valueOperator);
-      break;
-    default:
-      printf("THIS SHOULD NEVER HAPPEN!!!\n");
-      exit(EXIT_FAILURE);
-    };
+    char *text = elementToString(e);
+    printf("%i: %s\n",i,text);
+    free(text);
     i++;
   }
   /*
