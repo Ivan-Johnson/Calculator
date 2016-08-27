@@ -4,11 +4,10 @@
 #include <string.h>
 #include "element.h"
 
-
-char* elementToString(Element* e){
+char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
   int defaultLength = 15;
   int totalLength;
-  char *text = malloc(sizeof(char) * defaultLength);
+  char *text = malloc(sizeof(char) * defaultLength);//TODO FREE THIS AFTER THE IF
   
   switch(e->type){
   case ELEMENT_TYPE_INTEGER:
@@ -26,9 +25,19 @@ char* elementToString(Element* e){
     snprintf(text, totalLength, "(double) %f", e->valueDouble);
     return text;
   case ELEMENT_TYPE_STRING:
-    return e->valueString;
+    totalLength = snprintf(text, defaultLength, "\"%s\"", e->valueString);
+    if (totalLength >= 0 && totalLength < defaultLength)
+      return text;
+    text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
+    snprintf(text, totalLength, "\"%s\"", e->valueString);
+    return text;
   case ELEMENT_TYPE_VARIABLE:
-    return "some variable";
+    totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariable);
+    if (totalLength >= 0 && totalLength < defaultLength)
+      return text;
+    text = malloc(sizeof(char)*totalLength + 1);//+1 is for the NULL char
+    snprintf(text, totalLength, "(var) %s", e->valueVariable);
+    return text;
     //printf("(variable named) %s\n",e->valueVariable);
   case ELEMENT_TYPE_OPERATOR:
     totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
@@ -53,7 +62,6 @@ Element *newElement(){//private function
   return e;
 }
 
-//TODO make const/extern (in .h)
 const char ELEMENT_OPERATOR_VARIABLE_DECLARATION[] = "var";//"var" is stored as a v
 const char ELEMENT_VALID_OPERATORS[] = "()=+-*/%^v;";
 
