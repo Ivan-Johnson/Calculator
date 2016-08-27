@@ -1,8 +1,10 @@
 OBJS = calculon.o element.o scanner.o linked_list.o queue.o
 OPTS = -Wall -Werror -O2 -g -std=c99
 
-all : $(OBJS)
+calculon : $(OBJS)
 		gcc $(OPTS) $(OBJS) -o calculon -lm
+
+.PHONY : clean test
 
 calculon.o : calculon.c
 		gcc $(OPTS) -c calculon.c
@@ -19,7 +21,7 @@ linked_list.o : linked_list.c linked_list.h
 queue.o : queue.h queue.c
 		gcc $(OPTS) -c queue.c
 
-test : all
+test : calculon
 		./calculon in.txt
 
 clean :
