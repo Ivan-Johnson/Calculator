@@ -16,6 +16,7 @@ typedef struct Element Element;
 extern const char ELEMENT_OPERATOR_VARIABLE_DECLARATION[];
 extern const char ELEMENT_VALID_OPERATORS[];
 
+extern char* elementToString(Element* e);
 
 extern Element *newElementInteger(int);
 extern Element *newElementDouble(double);
