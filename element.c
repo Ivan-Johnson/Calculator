@@ -57,7 +57,8 @@ char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
     snprintf(text, totalLength, "(operator) %c", e->valueOperator);
     return text;
   default:
-    printf("THIS SHOULD NEVER HAPPEN!!!\n");
+    printf("ERROR: trying to print an element that has no type. file: %s line: %i\n",__FILE__, __LINE__);
+    printf("this elements data: valDoub %f, valStr %s, valVar %s, valOp \'%c\'\n", e->valueDouble, e->valueString, e->valueVariable, e->valueOperator);
     exit(EXIT_FAILURE);
   };
 }
@@ -104,10 +105,23 @@ Element *newElementOperator(char* str){
   e->type = ELEMENT_TYPE_OPERATOR;
   assert(strchr(ELEMENT_VALID_OPERATORS, *str));
   e->valueOperator = *str;
-  if (e->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION)
-    assert(strcmp(str, ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0);
+  if (e->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION) // if first letter is 'v'
+    assert(strcmp(str, ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0); //check to make sure str is 'var'
   else
     assert(strlen(str) == 1);
   return e;
 }
-
+int compareOperators(Element *e1, Element *e2){
+  assert(e1->type == ELEMENT_TYPE_OPERATOR && e2->type == ELEMENT_TYPE_OPERATOR);
+  //given 2 operators e1 and e2, returns negative when e1 is a lower priority than e1, 0 when equal, and positive when e1 is a higher priority
+  char c1 = e1->valueOperator;
+  char c2 = e2->valueOperator;
+  //*TODO are *&/ and +&- equal levels? if not, comment this and fix the priority string
+  c1 = c1 == '/' ? '*' : c1;
+  c2 = c2 == '/' ? '*' : c2;
+  c1 = c1 == '-' ? '+' : c1;
+  c2 = c2 == '-' ? '+' : c2;
+  //end comment*/
+  static char *priorities = ")+*^(";//reversed order of operations so that low priority operators have low indexes
+  return strchr(priorities, c1) - strchr(priorities, c2);
+}

@@ -23,5 +23,6 @@ extern Element *newElementDouble(double);
 extern Element *newElementString(char*);
 extern Element *newElementVariable(char*);
 extern Element *newElementOperator(char*);
+extern int compareOperators(Element* e1, Element* e2);
 
 #endif
