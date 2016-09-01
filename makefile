@@ -1,4 +1,4 @@
-OBJS = calculon.o element.o scanner.o linked_list.o queue.o
+OBJS = scanner.o element.o linked_list.o queue.o stack.o calculon.o
 OPTS = -Wall -Werror -O2 -g -std=c99
 
 calculon : $(OBJS)
@@ -20,6 +20,9 @@ linked_list.o : linked_list.c linked_list.h
 
 queue.o : queue.h queue.c
 		gcc $(OPTS) -c queue.c
+
+stack.o : stack.h stack.c
+		gcc $(OPTS) -c stack.c
 
 test : calculon
 		./calculon in.txt
