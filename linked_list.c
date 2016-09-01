@@ -153,6 +153,16 @@ void insertFront (void *list, void *data){
 void insertBack (void *list, void *data){
   insert (list, data, size(list));
 }
+
+void* getFront(void *list){
+  return get(list, 0);
+}
+
+void* getBack(void *list){
+  return get(list, size(list)-1);
+}
+
+
 void* removeFront(void *list){
   return ll_remove(list, 0);
 }
