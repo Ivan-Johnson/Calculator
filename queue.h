@@ -7,4 +7,6 @@ void enqueue (void* queue, void* data);
 
 void* dequeue (void* queue);
 
+void* queue_peek (void* queue);
+
 #endif

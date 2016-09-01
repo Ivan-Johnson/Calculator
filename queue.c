@@ -12,3 +12,7 @@ void enqueue (void* quenue, void* data){
 void* dequeue (void* quenue){
   return removeBack(quenue);
 }
+
+void* queue_peek (void* queue){
+  return getBack(queue);
+}
