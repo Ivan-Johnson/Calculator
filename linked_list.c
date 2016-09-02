@@ -33,12 +33,10 @@ linked_list_node* new_linked_list_node(void* data){
 linked_list_node* get_node(linked_list *list, int index){
   if (index == list->size)
     return NULL;
-  linked_list_node *node;
   assert (list != NULL);
   assert (index >= 0 && index < list->size);
-  assert (list != NULL);
-  assert (size(list) != 0);
   assert (list->front != NULL && list->back != NULL);
+  linked_list_node *node;
   if (index < list->size / 2){
     node = list->front;
     for (int i = 0; i<index; i++){
@@ -47,8 +45,7 @@ linked_list_node* get_node(linked_list *list, int index){
     }
   } else {
     node = list->back;
-    int i;
-    for (i = list->size - 1; i>index; i--){
+    for (int i = list->size - 1; i>index; i--){
       assert (node != NULL);
       node = node->backward;
     }
