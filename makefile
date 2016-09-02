@@ -28,5 +28,5 @@ test : calculon
 		./calculon in.txt
 
 clean :
-		rm $(OBJS) calculon
+		rm -f $(OBJS) calculon
 
