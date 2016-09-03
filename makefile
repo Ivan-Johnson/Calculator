@@ -25,7 +25,7 @@ stack.o : stack.h stack.c linked_list.h
 		gcc $(OPTS) -c stack.c
 
 test : calculon
-		./calculon in.txt
+		cat in.txt | ./calculon
 
 clean :
 		rm -f $(OBJS) calculon
