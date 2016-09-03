@@ -97,11 +97,13 @@ void insert (void* list,void* data, int index){
     l->size++;
     return;
   }
-  if (index == 0){ //SPECIAL CASE: BEING INSERTED AT FRONT; REQUIRES l->back TO BE UPDATED
+  if (index == 0){ //SPECIAL CASE: BEING INSERTED AT FRONT; REQUIRES l->front TO BE UPDATED
     new_node->forward = l->front;
     new_node->backward = NULL;//redundant, just here so that you know that I know what I'm doing
     l->front->backward = new_node;
     l->front = new_node;
+    l->size++;
+    return;
   }
   
   linked_list_node *node = get_node(l,index);
