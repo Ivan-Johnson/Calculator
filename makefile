@@ -18,10 +18,10 @@ scanner.o : scanner.c scanner.h
 linked_list.o : linked_list.c linked_list.h
 		gcc $(OPTS) -c linked_list.c
 
-queue.o : queue.h queue.c
+queue.o : queue.h queue.c linked_list.h
 		gcc $(OPTS) -c queue.c
 
-stack.o : stack.h stack.c
+stack.o : stack.h stack.c linked_list.h
 		gcc $(OPTS) -c stack.c
 
 test : calculon
