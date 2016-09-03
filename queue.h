@@ -3,12 +3,12 @@
 
 void* new_queue();
 
-void queue_enqueue (void* queue, void* data);
+void queue_enqueue(void* queue, void* data);
 
-void* queue_dequeue (void* queue);
+void* queue_dequeue(void* queue);
 
-void* queue_peek (void* queue);
+void* queue_peek(void* queue);
 
-int queue_size (void* queue);
+int queue_size(void* queue);
 
 #endif

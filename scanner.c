@@ -64,90 +64,77 @@
 
 static void skipWhiteSpace(FILE *);
 static char convertEscapedChar(int);
-static void *allocateMsg(size_t,char *);
-static void *reallocateMsg(void *,size_t,char *);
+static void *allocateMsg(size_t, char *);
+static void *reallocateMsg(void *, size_t, char *);
 
 /********** public functions **********************/
 
 int
-readInt(FILE *fp)
-    {
-    int x,result;
-    result = fscanf(fp,"%d",&x);
-    if (result == EOF)
-        {
+readInt(FILE *fp) {
+    int x, result;
+    result = fscanf(fp, "%d", &x);
+    if (result == EOF) {
         return 0;
-        }
-    if (result == 0)
-        {
-        fprintf(stderr,"SCAN ERROR: attempt to read an integer failed\n");
-        fprintf(stderr,"offending character was <%c>\n",fgetc(fp));
-        exit(1);
-        }
-    return x;
     }
+    if (result == 0) {
+        fprintf(stderr, "SCAN ERROR: attempt to read an integer failed\n");
+        fprintf(stderr, "offending character was <%c>\n", fgetc(fp));
+        exit(1);
+    }
+    return x;
+}
 
 double
-readReal(FILE *fp)
-    {
+readReal(FILE *fp) {
     int result;
     double x;
-    result = fscanf(fp," %lf",&x);
-    if (result == EOF)
-        {
+    result = fscanf(fp, " %lf", &x);
+    if (result == EOF) {
         return 0.0;
-        }
-    if (result == 0)
-        {
-        fprintf(stderr,"SCAN ERROR: attempt to read a real number failed\n");
-        fprintf(stderr,"offending character was <%c>\n",fgetc(fp));
-        exit(2);
-        }
-    return x;
     }
+    if (result == 0) {
+        fprintf(stderr, "SCAN ERROR: attempt to read a real number failed\n");
+        fprintf(stderr, "offending character was <%c>\n", fgetc(fp));
+        exit(2);
+    }
+    return x;
+}
 
 char
-readChar(FILE *fp)
-    {
+readChar(FILE *fp) {
     int result;
     char x;
-    result = fscanf(fp," %c",&x);
-    if (result == EOF)
-        {
+    result = fscanf(fp, " %c", &x);
+    if (result == EOF) {
         return -1;
-        }
-    if (result == 0)
-        {
-        fprintf(stderr,"SCAN ERROR: attempt to read a non-whitespace character failed\n");
-        fprintf(stderr,"offending character was <%c>\n",fgetc(fp));
-        exit(2);
-        }
-    return x;
     }
+    if (result == 0) {
+        fprintf(stderr, "SCAN ERROR: attempt to read a non-whitespace character failed\n");
+        fprintf(stderr, "offending character was <%c>\n", fgetc(fp));
+        exit(2);
+    }
+    return x;
+}
 
 char
-readRawChar(FILE *fp)
-    {
+readRawChar(FILE *fp) {
     int result;
     char x;
-    result = fscanf(fp,"%c",&x);
-    if (result == EOF)
-        {
+    result = fscanf(fp, "%c", &x);
+    if (result == EOF) {
         return -1;
-        }
-    if (result == 0)
-        {
-        fprintf(stderr,"SCAN ERROR: attempt to read a raw character failed\n");
-        fprintf(stderr,"offending character was <%c>\n",fgetc(fp));
-        exit(2);
-        }
-    return x;
     }
+    if (result == 0) {
+        fprintf(stderr, "SCAN ERROR: attempt to read a raw character failed\n");
+        fprintf(stderr, "offending character was <%c>\n", fgetc(fp));
+        exit(2);
+    }
+    return x;
+}
 
 char *
-readString(FILE *fp)
-    {
-    int ch,index;
+readString(FILE *fp) {
+    int ch, index;
     char *buffer;
     int size = 512;
 
@@ -161,14 +148,13 @@ readString(FILE *fp)
 
     /* allocate the buffer */
 
-    buffer = allocateMsg(size,"readString");
+    buffer = allocateMsg(size, "readString");
 
-    if (ch != '\"')
-        {
-        fprintf(stderr,"SCAN ERROR: attempt to read a string failed\n");
-        fprintf(stderr,"first character was <%c>\n",ch);
+    if (ch != '\"') {
+        fprintf(stderr, "SCAN ERROR: attempt to read a string failed\n");
+        fprintf(stderr, "first character was <%c>\n", ch);
         exit(4);
-        }
+    }
 
     /* toss the double quote, skip to the next character */
 
@@ -180,46 +166,39 @@ readString(FILE *fp)
 
     /* collect characters until the closing double quote */
 
-    while (ch != '\"')
-        {
-        if (ch == EOF)
-            {
-            fprintf(stderr,"SCAN ERROR: attempt to read a string failed\n");
-            fprintf(stderr,"no closing double quote\n");
+    while (ch != '\"') {
+        if (ch == EOF) {
+            fprintf(stderr, "SCAN ERROR: attempt to read a string failed\n");
+            fprintf(stderr, "no closing double quote\n");
             exit(6);
-            }
-        if (index > size - 2) 
-            {
+        }
+        if (index > size - 2) {
             ++size;
-            buffer = reallocateMsg(buffer,size,"readString");
-            }
+            buffer = reallocateMsg(buffer, size, "readString");
+        }
 
-        if (ch == '\\')
-            {
+        if (ch == '\\') {
             ch = fgetc(fp);
-            if (ch == EOF)
-                {
-                fprintf(stderr,"SCAN ERROR: attempt to read a string failed\n");
-                fprintf(stderr,"escaped character missing\n");
+            if (ch == EOF) {
+                fprintf(stderr, "SCAN ERROR: attempt to read a string failed\n");
+                fprintf(stderr, "escaped character missing\n");
                 exit(6);
-                }
-            buffer[index] = convertEscapedChar(ch);
             }
-        else
+            buffer[index] = convertEscapedChar(ch);
+        } else
             buffer[index] = ch;
         ++index;
         ch = fgetc(fp);
-        }
+    }
 
     buffer[index] = '\0';
 
     return buffer;
-    }
+}
 
 char *
-readToken(FILE *fp)
-    {
-    int ch,index;
+readToken(FILE *fp) {
+    int ch, index;
     char *buffer;
     int size = 80;
 
@@ -229,83 +208,76 @@ readToken(FILE *fp)
     ch = fgetc(fp);
     if (ch == EOF) return 0;
 
-    buffer = allocateMsg(size,"readToken");
+    buffer = allocateMsg(size, "readToken");
 
     index = 0;
-    while (!isspace(ch))
-        {
+    while (!isspace(ch)) {
         if (ch == EOF) break;
-        if (index > size - 2)
-            {
+        if (index > size - 2) {
             ++size;
-            buffer = reallocateMsg(buffer,size,"readToken");
-            }
+            buffer = reallocateMsg(buffer, size, "readToken");
+        }
         buffer[index] = ch;
         ++index;
         ch = fgetc(fp);
-        }
+    }
 
     /* push back the character that got us out of this loop */
 
-    ungetc(ch,fp);
+    ungetc(ch, fp);
 
-    if (index > 0)              //there is something in the buffer
-        clearerr(fp);           //so force the read to be good
+    if (index > 0) //there is something in the buffer
+        clearerr(fp); //so force the read to be good
 
     buffer[index] = '\0';
 
     return buffer;
-    }
+}
 
 char *
-readLine(FILE *fp)
-    {
-    int ch,index;
+readLine(FILE *fp) {
+    int ch, index;
     char *buffer;
     int size = 512;
-    
+
     ch = fgetc(fp);
     if (ch == EOF) return 0;
 
-    buffer = allocateMsg(size,"readLine");
+    buffer = allocateMsg(size, "readLine");
 
     index = 0;
-    while (ch != '\n')
-        {
+    while (ch != '\n') {
         if (ch == EOF) break;
-        if (index > size - 2)
-            {
+        if (index > size - 2) {
             ++size;
-            buffer = reallocateMsg(buffer,size,"readLine");
-            }
+            buffer = reallocateMsg(buffer, size, "readLine");
+        }
         buffer[index] = ch;
         ++index;
         ch = fgetc(fp);
-        }
+    }
 
 
-    if (index > 0)              //there is something in the buffer
-        clearerr(fp);           //so force the read to be good
+    if (index > 0) //there is something in the buffer
+        clearerr(fp); //so force the read to be good
 
     buffer[index] = '\0';
 
     return buffer;
-    }
+}
 
 int
-stringPending(FILE *fp)
-   {
-   char ch = readChar(fp);
-   int result = ch == '\"';
-   ungetc(ch,fp);
-   return result;
-   }
+stringPending(FILE *fp) {
+    char ch = readChar(fp);
+    int result = ch == '\"';
+    ungetc(ch, fp);
+    return result;
+}
 
 /********** private functions **********************/
 
 static void
-skipWhiteSpace(FILE *fp)
-    {
+skipWhiteSpace(FILE *fp) {
     int ch;
 
     /* read chars until a non-whitespace character is encountered */
@@ -317,78 +289,67 @@ skipWhiteSpace(FILE *fp)
 
     /* a non-space character got us out of the loop, so push it back */
 
-    ungetc(ch,fp);
-    }
+    ungetc(ch, fp);
+}
 
 static char
-convertEscapedChar(int ch)
-    {
-    switch (ch)
-        {
-        case 'n':  return '\n';
-        case 't':  return '\t';
-        case '"':  return '\"';
+convertEscapedChar(int ch) {
+    switch (ch) {
+        case 'n': return '\n';
+        case 't': return '\t';
+        case '"': return '\"';
         case '\\': return '\\';
-        }
-    return ch;
     }
+    return ch;
+}
 
 void *
-allocate(size_t size)
-    {
+allocate(size_t size) {
     char *s;
     s = malloc(size);
-    if (s == 0)
-        {
-        fprintf(stderr,"could not allocate string, out of memory\n");
+    if (s == 0) {
+        fprintf(stderr, "could not allocate string, out of memory\n");
         exit(3);
-        }
-
-    return s;
     }
 
+    return s;
+}
+
 void *
-reallocate(void *s,size_t size)
-    {
+reallocate(void *s, size_t size) {
     char *t;
-    t = realloc(s,size);
-    if (t == 0)
-        {
-        fprintf(stderr,"could not reallocate string, out of memory\n");
+    t = realloc(s, size);
+    if (t == 0) {
+        fprintf(stderr, "could not reallocate string, out of memory\n");
         exit(3);
-        }
+    }
 
     return t;
-    }
-
+}
 
 void *
-allocateMsg(size_t size,char *where)
-    {
+allocateMsg(size_t size, char *where) {
     char *s;
     s = malloc(size);
-    if (s == 0)
-        {
-        fprintf(stderr,"%s: could not allocate string, out of memory\n",
-            where);
+    if (s == 0) {
+        fprintf(stderr, "%s: could not allocate string, out of memory\n",
+                where);
         exit(3);
-        }
+    }
 
     return s;
-    }
+}
 
 static void *
-reallocateMsg(void *s,size_t size,char *where)
-    {
+reallocateMsg(void *s, size_t size, char *where) {
     char *t;
-    t = realloc(s,size);
-    if (t == 0)
-        {
-        fprintf(stderr,"%s: could not reallocate string, out of memory\n",
-            where);
+    t = realloc(s, size);
+    if (t == 0) {
+        fprintf(stderr, "%s: could not reallocate string, out of memory\n",
+                where);
         exit(3);
-        }
+    }
 
     return t;
-    }
+}
 

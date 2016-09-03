@@ -3,12 +3,12 @@
 
 void* new_stack();
 
-void stack_push (void* stack, void* data);
+void stack_push(void* stack, void* data);
 
-void* stack_pop (void* stack);
+void* stack_pop(void* stack);
 
-void* stack_peek (void* stack);
+void* stack_peek(void* stack);
 
-int stack_size (void* stack);
+int stack_size(void* stack);
 
 #endif

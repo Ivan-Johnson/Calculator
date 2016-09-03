@@ -15,5 +15,5 @@ extern int stringPending(FILE *);
 extern char *readToken(FILE *);
 extern char *readLine(FILE *);
 extern void *allocate(size_t);
-extern void *reallocate(void *,size_t);
+extern void *reallocate(void *, size_t);
 #endif
