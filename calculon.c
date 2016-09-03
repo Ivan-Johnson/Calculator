@@ -24,7 +24,7 @@ const char* FLAG_PRINTPOSTFIX = "d";
   char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
   if (c == 0){
   printf("out of memory\n");
-  exit(1);
+  exit(EXIT_FAILURE);
   }
   sprintf(c,"%s%s",arg1,arg2);
   return c;
@@ -44,7 +44,7 @@ void showUsage(char *progName) {
 void validateMemory(void* pointer) {
   if (pointer == NULL) {
     printf("out of memory\n");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -72,14 +72,14 @@ parsedArgs *processArguments(int argc, char **argv) {
           args->printPostfix = true;
         else {
           printf("Error: \'%c\' is not a valid option for %s\n", argv[i][j], argv[0]);
-          exit(1);
+          exit(EXIT_FAILURE);
         }
         j++;
       }
     } else {
       if (args->file != NULL) {
         printf("Error: received two or more filename parameters");
-        exit(1);
+        exit(EXIT_FAILURE);
       }
       args->file = fopen(argv[i], "r");
     }
