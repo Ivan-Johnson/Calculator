@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -9,22 +10,29 @@
 #include "linked_list.h"
 #include "queue.h"
 #include "element.h"
+#include "stack.h"
+
 
 const char* NAME = "Ivan T. Johnson";
 const char* FLAG_SHOWNAME="v";
 const char* FLAG_PRINTPOSTFIX="d";
 
+//TODO ERROR WHEN REACH EOF WITHOUT READING ';'
 //TODO MAKE SURE USING MALLOC PROPERLY; ESP. SIZEOF(CHAR)*WHATEVER
+//TODO FREE THINGS WHEN DONE WITH THEM. WHEN FREEING ELEMENTS BE SURE TO FREE THEIR STRINGS
+//TODO SUBMISSION PASSWORD IS "seventeen?"
+//TODO TYPEDEF STACKS/QUEUES/LINKEDLISTS AS VOID*(but without *?)
+//TODO RENAME EVERYTHING SO IT ALL MAKES SENSE.
 /*
-char* strCat (char* arg1, char* arg2){
+  char* strCat (char* arg1, char* arg2){
   char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
   if (c == 0){
-    printf("out of memory\n");
-    exit(1);
+  printf("out of memory\n");
+  exit(1);
   }
   sprintf(c,"%s%s",arg1,arg2);
   return c;
-}
+  }
 //*/
 
 typedef struct{
@@ -91,7 +99,7 @@ void* readExpression(FILE *f){
       }
       if (strchr(str,'.') != 0)
 	v = newElementDouble(atof(str));
-      else if (*str == '-' || isdigit(*str))
+      else if (isdigit(*str) || (strlen(str)>1 && *str == '-'))
 	v = newElementInteger(atoi(str));
       else if (!isalpha(*str) || strcmp(str,ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0)
 	if (*str == ';')
@@ -106,10 +114,41 @@ void* readExpression(FILE *f){
       enqueue(queue, v);
   }
   return queue;
-  
 }
 
+void printElementQueue(void *queue){//TODO DELETE THIS FUNCTION BEFORE TURNING IN
+  /*
+    int i = 0;
+    while (size(queue)>0){//TMP
+    Element *e = (Element *)dequeue(queue);
+    printf("%i: %s\n",i,elementToString(e));
+    i++;
+    }
+    /*/  
+  Element *e;
+  for (int i = size(queue) - 1; i>=0; i--){
+    e = get(queue, i);
+    printf("%i: %s\n",i,elementToString(e));
+    //free(e);
+  }//*/
+}
 
+void* convert (void* infix){
+  //TODO
+  //void* operator_stack = new_stack();
+  //void* postfix_queue = new_queue();
+  //Element *next;
+  //while (size(infix) > 0) {
+  //next = dequeue(infix);
+  //}
+  //return postfix_queue;
+  return infix;
+}
+Element* evaluate(void* queue){
+  //TODO
+  printElementQueue(queue);
+  return NULL;
+}
 int main(int argc, char **argv) {
   parsedArgs *args = processArguments(argc, argv);
   if (args->printName){
@@ -117,28 +156,46 @@ int main(int argc, char **argv) {
     return 0;
   }
   void* infix = readExpression(args->file);
-  int i;
   while (size(infix) != 0) {
-    i = 0;
-    while (size(infix)>0){//TMP
-      Element *e = (Element *)dequeue(infix);
-      char *text = elementToString(e);
-      printf("%i: %s\n",i,text);
-      free(text);
-      i++;
-    }
-
-    /*
-      quene* postfix = convert(infix);
-      if (args->printPostfix){
-      printf(toString(postfix));
-      return 0;
+    Element *front = (Element *) queue_peek(infix);
+    if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION) {//it could start with operator '('
+      dequeue(infix);//removes the "var" operator
+      assert(size(infix)>0);
+      Element* var = queue_peek(infix);
+      assert(var->type == ELEMENT_TYPE_VARIABLE);
+      //TODO create the variable var
+      if (size(infix) == 1) {
+	//ie. if variable is declared but not initiated
+	//TODO SHOULD NEVER HAPPEN?
+	infix = readExpression(args->file);
+	continue;
       }
-      stack* reversePostfix = reverse(postfix);
-      printf(evaluate(reversePostfix));
-    */
+      front = (Element *) queue_peek(infix);
+    }
+    if (front->type == ELEMENT_TYPE_VARIABLE){
+      Element *var = dequeue(infix);
+      Element *eq = dequeue(infix);
+      assert (var->type == ELEMENT_TYPE_VARIABLE);
+      assert (eq->type == ELEMENT_TYPE_OPERATOR && eq->valueOperator == '=');
+      //TODO
+      /*Element *eq =*/ evaluate(convert(infix));
+      /*
+	if (args->printPostfix){
+	printf(toString(postfix));
+	return 0;
+	}
+      */
+    }else{//it's not a variable assignment or initialization, so we don't need to do anything.
+      //TODO EXCEPT MAKE SURE THAT WE'LL BE ABLE TO PRINT OUT THE POSTFIX IF IT'S THE LAST IN THE LIST.
+      //TODO REMOVE THIS CODE. ONLY HERE FOR TESTING.
+      evaluate(convert(infix));
+    }
+    //TODO do we need to do anything if there's an expression that's not being assigned to a variable...? (assuming it's not the last one in the file)
+    
     printf("\n"); //separates the expressions to make the output easier to read
     infix = readExpression(args->file);
   }
   return 0;
 }
+
+
