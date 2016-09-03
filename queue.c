@@ -5,14 +5,18 @@ void* new_queue(){
   return new_linked_list();
 }
 
-void enqueue (void* quenue, void* data){
-  insertFront(quenue, data);
+void queue_enqueue (void* quenue, void* data){
+  linked_list_insert_Front(quenue, data);
 }
 
-void* dequeue (void* quenue){
-  return removeBack(quenue);
+void* queue_dequeue (void* quenue){
+  return linked_list_remove_back(quenue);
 }
 
 void* queue_peek (void* queue){
-  return getBack(queue);
+  return linked_list_get_back(queue);
+}
+
+int queue_size (void* queue){
+  return linked_list_size (queue);
 }

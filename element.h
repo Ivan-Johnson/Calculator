@@ -16,13 +16,13 @@ typedef struct Element Element;
 extern const char ELEMENT_OPERATOR_VARIABLE_DECLARATION[];
 extern const char ELEMENT_VALID_OPERATORS[];
 
-extern char* elementToString(Element* e);
+extern char* element_to_string(Element* e);
 
-extern Element *newElementInteger(int);
-extern Element *newElementDouble(double);
-extern Element *newElementString(char*);
-extern Element *newElementVariable(char*);
-extern Element *newElementOperator(char*);
-extern int compareOperators(Element* e1, Element* e2);
+extern Element *new_Element_integer(int);
+extern Element *new_Element_double(double);
+extern Element *new_Element_string(char*);
+extern Element *new_Element_variable(char*);
+extern Element *new_Element_operator(char*);
+extern int element_compare_operators(Element* e1, Element* e2);
 
 #endif

@@ -27,6 +27,7 @@ linked_list_node* new_linked_list_node(void* data){
   node->data = data;
   node->forward = NULL;
   node->backward = NULL;
+  
   return node;
 }
 
@@ -69,7 +70,7 @@ void* new_linked_list(){
   return list;
 }
 
-void* set(void *list, void* data, int index){
+void* linked_list_set(void *list, void* data, int index){
   linked_list *l = (linked_list*)list;
   linked_list_node *node = get_node(l,index);
   void* old_data = node->data;
@@ -77,7 +78,7 @@ void* set(void *list, void* data, int index){
   return old_data;
 }
   
-void insert (void* list,void* data, int index){
+void linked_list_insert (void* list,void* data, int index){
   assert (list != NULL);
   linked_list *l = (linked_list*)list;
   linked_list_node *new_node = new_linked_list_node(data);
@@ -117,8 +118,8 @@ void insert (void* list,void* data, int index){
   node->backward = new_node;
   l->size++;
 }
-void* ll_remove(void *list, int index){
-  assert(index>= 0 && index < size(list));
+void* linked_list_remove(void *list, int index){
+  assert(index>= 0 && index < linked_list_size(list));
   linked_list *l = (linked_list*)list;
   linked_list_node *node = get_node(l,index);
   if (node->backward != NULL)
@@ -134,7 +135,7 @@ void* ll_remove(void *list, int index){
   l->size--;
   return removed_data;
 }
-void* get(void *list, int index){
+void* linked_list_get(void *list, int index){
   linked_list *l = (linked_list*)list;
   linked_list_node *node = get_node(l,index);
   return node->data;
@@ -143,28 +144,27 @@ void* get(void *list, int index){
 
 
 
-int size(void* list){
+int linked_list_size(void* list){
   return ((linked_list*) list)->size;
 }
-void insertFront (void *list, void *data){
-  insert (list, data, 0);
+void linked_list_insert_Front (void *list, void *data){
+  linked_list_insert (list, data, 0);
 }
-void insertBack (void *list, void *data){
-  insert (list, data, size(list));
-}
-
-void* getFront(void *list){
-  return get(list, 0);
+void linked_list_insert_Back (void *list, void *data){
+  linked_list_insert (list, data, linked_list_size(list));
 }
 
-void* getBack(void *list){
-  return get(list, size(list)-1);
+void* linked_list_get_front(void *list){
+  return linked_list_get(list, 0);
 }
 
-
-void* removeFront(void *list){
-  return ll_remove(list, 0);
+void* linked_list_get_back(void *list){
+  return linked_list_get(list, linked_list_size(list)-1);
 }
-void* removeBack(void *list){
-  return ll_remove (list, size(list)-1);
+
+void* linked_list_remove_Front(void *list){
+  return linked_list_remove(list, 0);
+}
+void* linked_list_remove_back(void *list){
+  return linked_list_remove (list, linked_list_size(list)-1);
 }

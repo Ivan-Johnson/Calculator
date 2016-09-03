@@ -4,7 +4,7 @@
 #include <string.h>
 #include "element.h"
 
-char* elementToString(Element* e){//TODO CLEAN UP THIS MESS
+char* element_to_string(Element* e){//TODO CLEAN UP THIS MESS
   int defaultLength = 15;
   int totalLength;
   char *text = malloc(sizeof(char) * defaultLength);
@@ -76,31 +76,31 @@ Element *newElement(){//private function
 const char ELEMENT_OPERATOR_VARIABLE_DECLARATION[] = "var";//"var" is stored as a v
 const char ELEMENT_VALID_OPERATORS[] = "()=+-*/%^v;";
 
-Element *newElementInteger(int i){
+Element *new_Element_integer(int i){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_INTEGER;
   e->valueInteger = i;
   return e;
 }
-Element *newElementDouble(double d){
+Element *new_Element_double(double d){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_DOUBLE;
   e->valueDouble = d;
   return e;
 }
-Element *newElementString(char* string){
+Element *new_Element_string(char* string){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_STRING;
   e->valueString = string;
   return e;
 }
-Element *newElementVariable(char* variableName){
+Element *new_Element_variable(char* variableName){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_VARIABLE;
   e->valueVariable = variableName;
   return e;
 }
-Element *newElementOperator(char* str){
+Element *new_Element_operator(char* str){
   Element *e = newElement();
   e->type = ELEMENT_TYPE_OPERATOR;
   assert(strchr(ELEMENT_VALID_OPERATORS, *str));
@@ -111,7 +111,7 @@ Element *newElementOperator(char* str){
     assert(strlen(str) == 1);
   return e;
 }
-int compareOperators(Element *e1, Element *e2){
+int element_compare_operators(Element *e1, Element *e2){
   assert(e1->type == ELEMENT_TYPE_OPERATOR && e2->type == ELEMENT_TYPE_OPERATOR);
   //given 2 operators e1 and e2, returns negative when e1 is a lower priority than e1, 0 when equal, and positive when e1 is a higher priority
   static char *priorities = ")+-*/%^(";//reversed order of operations so that low priority operators have low indexes

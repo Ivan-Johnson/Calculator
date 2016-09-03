@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -12,7 +11,6 @@
 #include "element.h"
 #include "stack.h"
 
-
 const char* NAME = "Ivan T. Johnson";
 const char* FLAG_SHOWNAME="v";
 const char* FLAG_PRINTPOSTFIX="d";
@@ -23,6 +21,7 @@ const char* FLAG_PRINTPOSTFIX="d";
 //TODO SUBMISSION PASSWORD IS "seventeen?"
 //TODO TYPEDEF STACKS/QUEUES/LINKEDLISTS AS VOID*(but without *?)
 //TODO RENAME EVERYTHING SO IT ALL MAKES SENSE.
+//TODO BUG: ERRORS WITH x + 5 BECAUSE IT ASSUMES STARTING WITH VARIABLE MEANS IT IS AN ASSIGNMENT
 /*
   char* strCat (char* arg1, char* arg2){
   char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
@@ -91,27 +90,27 @@ void* readExpression(FILE *f){
   
   while (!feof(f)) {
     if (stringPending(f)){
-      v = newElementString(readString(f));
+      v = new_Element_string(readString(f));
     } else {
       char *str = readToken(f);
       if (str == NULL){
 	continue;
       }
       if (strchr(str,'.') != 0)
-	v = newElementDouble(atof(str));
+	v = new_Element_double(atof(str));
       else if (isdigit(*str) || (strlen(str)>1 && *str == '-'))
-	v = newElementInteger(atoi(str));
+	v = new_Element_integer(atoi(str));
       else if (!isalpha(*str) || strcmp(str,ELEMENT_OPERATOR_VARIABLE_DECLARATION)==0)
 	if (*str == ';')
 	  return queue;
 	else
-	  v = newElementOperator(str);
+	  v = new_Element_operator(str);
       else
-	v = newElementVariable(str);
+	v = new_Element_variable(str);
       str = NULL;//completely unneccessary, but it makes me happy.
     }
     if (v != NULL)
-      enqueue(queue, v);
+      queue_enqueue(queue, v);
   }
   return queue;
 }
@@ -126,9 +125,10 @@ void printElementQueue(void *queue){//TODO DELETE THIS FUNCTION BEFORE TURNING I
     }
     /*/  
   Element *e;
-  for (int i = size(queue) - 1; i>=0; i--){
-    e = get(queue, i);
-    printf("%i: %s\n",i,elementToString(e));
+  
+  for (int i = queue_size(queue) - 1; i>=0; i--){
+    e = linked_list_get(queue, i);
+    printf("%i: %s\n",i,element_to_string(e));
     //free(e);
   }//*/
 }
@@ -156,15 +156,15 @@ int main(int argc, char **argv) {
     return 0;
   }
   void* infix = readExpression(args->file);
-  while (size(infix) != 0) {
+  while (queue_size(infix) != 0) {
     Element *front = (Element *) queue_peek(infix);
     if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION) {//it could start with operator '('
-      dequeue(infix);//removes the "var" operator
-      assert(size(infix)>0);
+      queue_dequeue(infix);//removes the "var" operator
+      assert(queue_size(infix)>0);
       Element* var = queue_peek(infix);
       assert(var->type == ELEMENT_TYPE_VARIABLE);
       //TODO create the variable var
-      if (size(infix) == 1) {
+      if (queue_size(infix) == 1) {
 	//ie. if variable is declared but not initiated
 	//TODO SHOULD NEVER HAPPEN?
 	infix = readExpression(args->file);
@@ -173,8 +173,8 @@ int main(int argc, char **argv) {
       front = (Element *) queue_peek(infix);
     }
     if (front->type == ELEMENT_TYPE_VARIABLE){
-      Element *var = dequeue(infix);
-      Element *eq = dequeue(infix);
+      Element *var = queue_dequeue(infix);
+      Element *eq = queue_dequeue(infix);
       assert (var->type == ELEMENT_TYPE_VARIABLE);
       assert (eq->type == ELEMENT_TYPE_OPERATOR && eq->valueOperator == '=');
       //TODO
