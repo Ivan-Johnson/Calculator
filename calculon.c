@@ -15,12 +15,8 @@ const char* NAME = "Ivan T. Johnson";
 const char* FLAG_SHOWNAME = "v";
 const char* FLAG_PRINTPOSTFIX = "d";
 
-//TODO ERROR WHEN REACH EOF WITHOUT READING ';'
-//TODO MAKE SURE USING MALLOC PROPERLY; ESP. SIZEOF(CHAR)*WHATEVER
 //TODO FREE THINGS WHEN DONE WITH THEM. WHEN FREEING ELEMENTS BE SURE TO FREE THEIR STRINGS
 //TODO SUBMISSION PASSWORD IS "seventeen?"
-//TODO TYPEDEF STACKS/QUEUES/LINKEDLISTS AS VOID*(but without *?)
-//TODO RENAME EVERYTHING SO IT ALL MAKES SENSE.
 //TODO BUG: ERRORS WITH x + 5 BECAUSE IT ASSUMES STARTING WITH VARIABLE MEANS IT IS AN ASSIGNMENT
 
 /*
@@ -49,6 +45,14 @@ void validateMemory(void* pointer) {
   if (pointer == NULL) {
     printf("out of memory\n");
     exit(1);
+  }
+}
+
+void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING IN
+  Element *e;
+  for (int i = queue_size(queue) - 1; i >= 0; i--) {
+    e = linked_list_get(queue, i);
+    printf("%i: %s\n", i, element_to_string(e));
   }
 }
 
@@ -88,50 +92,40 @@ parsedArgs *processArguments(int argc, char **argv) {
 void* readExpression(FILE *f) {
   Element *v = NULL;
   void* queue = new_queue();
-
-  while (!feof(f)) {
+  bool reached_expression_end = false;
+  while (!reached_expression_end) {
     if (stringPending(f)) {
       v = new_Element_string(readString(f));
     } else {
       char *str = readToken(f);
-      if (str == NULL) {
-        continue;
-      }
-      if (strchr(str, '.') != 0)
-        v = new_Element_double(atof(str));
-      else if (isdigit(*str) || (strlen(str) > 1 && *str == '-'))
-        v = new_Element_integer(atoi(str));
-      else if (!isalpha(*str) || strcmp(str, ELEMENT_OPERATOR_VARIABLE_DECLARATION) == 0)
-        if (*str == ';')
-          return queue;
+      if (str != NULL) {
+        if (strchr(str, '.') != 0)
+          v = new_Element_double(atof(str));
+        else if (isdigit(*str) || (strlen(str) > 1 && *str == '-'))
+          v = new_Element_integer(atoi(str));
+        else if (!isalpha(*str) || strcmp(str, ELEMENT_OPERATOR_VARIABLE_DECLARATION) == 0)
+          if (*str == ';')
+            reached_expression_end = true;
+          else
+            v = new_Element_operator(str);
         else
-          v = new_Element_operator(str);
-      else
-        v = new_Element_variable(str);
-      str = NULL; //completely unneccessary, but it makes me happy.
+          v = new_Element_variable(str);
+      }
     }
     if (v != NULL)
       queue_enqueue(queue, v);
+    v = NULL;
+    if (feof(f))
+      reached_expression_end = true;
+  }
+  if (feof(f)) {
+    if (queue_size(queue) == 0)
+      return queue;
+    printf("missing \';\' for expression:\n");
+    printElementQueue(queue);
+    exit(EXIT_FAILURE);
   }
   return queue;
-}
-
-void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING IN
-  /*
-    int i = 0;
-    while (size(queue)>0){//TMP
-    Element *e = (Element *)dequeue(queue);
-    printf("%i: %s\n",i,elementToString(e));
-    i++;
-    }
-    /*/
-  Element *e;
-
-  for (int i = queue_size(queue) - 1; i >= 0; i--) {
-    e = linked_list_get(queue, i);
-    printf("%i: %s\n", i, element_to_string(e));
-    //free(e);
-  }//*/
 }
 
 void* convert(void* infix) {
