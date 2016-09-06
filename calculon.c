@@ -41,7 +41,7 @@ void showUsage(char *progName) {
   printf("Usage: %s [option] [filename]\n", progName);
 }
 
-void validateMemory(void* pointer) {
+void validateMemory(void* pointer) {//TODO DELETE THIS FUNCTION. OR AT LEAST INLINE IT.
   if (pointer == NULL) {
     printf("out of memory\n");
     exit(EXIT_FAILURE);
@@ -50,9 +50,14 @@ void validateMemory(void* pointer) {
 
 void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING IN
   Element *e;
+  printf("PRINTING QUEUE\n");
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
     e = linked_list_get(queue, i);
+    /*
     printf("%i: %s\n", i, element_to_string(e));
+    /*/
+    printf("%s ",element_to_string(e));
+    //*/
   }
 }
 
@@ -130,19 +135,49 @@ void* readExpression(FILE *f) {
 
 void* convert(void* infix) {
   //TODO
-  //void* operator_stack = new_stack();
-  //void* postfix_queue = new_queue();
-  //Element *next;
-  //while (size(infix) > 0) {
-  //next = dequeue(infix);
-  //}
-  //return postfix_queue;
-  return infix;
+  void* operator_stack = new_stack();
+  void* postfix_queue = new_queue();
+  Element *next;
+  printf("INFIX: ");
+  printElementQueue(infix);
+  printf("\n");
+  printf("\n");
+  while (queue_size(infix) > 0) {
+    next = queue_dequeue(infix);
+    if (next->type == ELEMENT_TYPE_OPERATOR){
+      if (stack_size(operator_stack)==0 || element_compare_operators(next,stack_peek(operator_stack)) > 0){
+	stack_push(operator_stack, next);
+      }else{
+	do{
+	  if (!element_is_parenthesis(stack_peek(operator_stack))){
+	    queue_enqueue(postfix_queue, stack_pop(operator_stack));
+	  }else{
+	    stack_pop(operator_stack);
+	  }
+	}while (stack_size(operator_stack) > 0 && element_compare_operators(next,stack_peek(operator_stack)) <= 0);
+	stack_push(operator_stack, next);
+      }
+    }else{
+      queue_enqueue(postfix_queue, next);
+    }
+  }
+  while(stack_size(operator_stack)>0){
+    if (!element_is_parenthesis(stack_peek(operator_stack))){
+      queue_enqueue(postfix_queue, stack_pop(operator_stack));
+    }else{
+      stack_pop(operator_stack);//TODO, THIS SHOULD ERROR?
+    }
+  }
+  return postfix_queue;
 }
 
-Element* evaluate(void* queue) {
+Element* evaluate(void* postfix) {
   //TODO
-  printElementQueue(queue);
+  printf("POSTFIX: ");
+  printElementQueue(postfix);
+  printf("\n");
+  printf("\n");
+  printf("\n");
   return NULL;
 }
 
@@ -169,24 +204,10 @@ int main(int argc, char **argv) {
       }
       front = (Element *) queue_peek(infix);
     }
-    if (front->type == ELEMENT_TYPE_VARIABLE) {
-      Element *var = queue_dequeue(infix);
-      Element *eq = queue_dequeue(infix);
-      assert(var->type == ELEMENT_TYPE_VARIABLE);
-      assert(eq->type == ELEMENT_TYPE_OPERATOR && eq->valueOperator == '=');
-      //TODO
-      /*Element *eq =*/ evaluate(convert(infix));
-      /*
-        if (args->printPostfix){
-        printf(toString(postfix));
-        return 0;
-        }
-       */
-    } else {//it's not a variable assignment or initialization, so we don't need to do anything.
-      //TODO EXCEPT MAKE SURE THAT WE'LL BE ABLE TO PRINT OUT THE POSTFIX IF IT'S THE LAST IN THE LIST.
-      //TODO REMOVE THIS CODE. ONLY HERE FOR TESTING.
-      evaluate(convert(infix));
-    }
+    //TODO EXCEPT MAKE SURE THAT WE'LL BE ABLE TO PRINT OUT THE POSTFIX IF IT'S THE LAST IN THE LIST.
+    //TODO REMOVE THIS CODE. ONLY HERE FOR TESTING.
+    evaluate(convert(infix));
+    
     //TODO do we need to do anything if there's an expression that's not being assigned to a variable...? (assuming it's not the last one in the file)
 
     printf("\n"); //separates the expressions to make the output easier to read
