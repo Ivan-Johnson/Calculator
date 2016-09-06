@@ -1,5 +1,6 @@
 #ifndef ELEMENT_H
 #define ELEMENT_H
+#include <stdbool.h>
 
 enum ElementType {
     ELEMENT_TYPE_INTEGER, ELEMENT_TYPE_DOUBLE, ELEMENT_TYPE_STRING, ELEMENT_TYPE_VARIABLE, ELEMENT_TYPE_OPERATOR
@@ -27,5 +28,6 @@ extern Element *new_Element_string(char*);
 extern Element *new_Element_variable(char*);
 extern Element *new_Element_operator(char*);
 extern int element_compare_operators(Element* e1, Element* e2);
+extern bool element_is_parenthesis(Element* e);
 
 #endif

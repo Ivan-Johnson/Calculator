@@ -8,10 +8,14 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
   int defaultLength = 15;
   int totalLength;
   char *text = malloc(sizeof(char) * defaultLength);
-
+  
   switch (e->type) {
   case ELEMENT_TYPE_INTEGER:
+    /*
     totalLength = snprintf(text, defaultLength, "(int) %i", e->valueInteger);
+    /*/
+    totalLength = snprintf(text, defaultLength, "%i", e->valueInteger);
+    //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
     free(text);
@@ -20,7 +24,11 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     snprintf(text, totalLength, "(int) %i", e->valueInteger);
     return text;
   case ELEMENT_TYPE_DOUBLE:
+    /*
     totalLength = snprintf(text, defaultLength, "(double) %f", e->valueDouble);
+    /*/
+    totalLength = snprintf(text, defaultLength, "%f(.)", e->valueDouble);
+    //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
     free(text);
@@ -38,7 +46,11 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     snprintf(text, totalLength, "\"%s\"", e->valueString);
     return text;
   case ELEMENT_TYPE_VARIABLE:
+    /*
     totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariable);
+    /*/
+    totalLength = snprintf(text, defaultLength, "%s", e->valueVariable);
+    //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
     free(text);
@@ -48,7 +60,11 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     return text;
     //printf("(variable named) %s\n",e->valueVariable);
   case ELEMENT_TYPE_OPERATOR:
+    /*
     totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
+    /*/
+    totalLength = snprintf(text, defaultLength, "%c", e->valueOperator);
+    //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
     free(text);
@@ -118,6 +134,11 @@ Element *new_Element_operator(char* str) {
 int element_compare_operators(Element *e1, Element *e2) {
   assert(e1->type == ELEMENT_TYPE_OPERATOR && e2->type == ELEMENT_TYPE_OPERATOR);
   //given 2 operators e1 and e2, returns negative when e1 is a lower priority than e1, 0 when equal, and positive when e1 is a higher priority
-  static char *priorities = ")+-*/%^("; //reversed order of operations so that low priority operators have low indexes
+  static char *priorities = "=)+-*/%^("; //reversed order of operations so that low priority operators have low indexes
   return strchr(priorities, e1->valueOperator) - strchr(priorities, e2->valueOperator);
+}
+
+bool element_is_parenthesis(Element* e){
+  assert(e->type == ELEMENT_TYPE_OPERATOR);
+  return e->valueOperator == '(' || e->valueOperator == ')';
 }
