@@ -54,8 +54,8 @@ void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING 
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
     e = linked_list_get(queue, i);
     /*
-    printf("%i: %s\n", i, element_to_string(e));
-    /*/
+      printf("%i: %s\n", i, element_to_string(e));
+      /*/
     printf("%s ",element_to_string(e));
     //*/
   }
@@ -142,19 +142,35 @@ void* convert(void* infix) {
   printElementQueue(infix);
   printf("\n");
   printf("\n");
+ convertion:
   while (queue_size(infix) > 0) {
     next = queue_dequeue(infix);
     if (next->type == ELEMENT_TYPE_OPERATOR){
-      if (stack_size(operator_stack)==0 || element_compare_operators(next,stack_peek(operator_stack)) > 0){
+      if (next->valueOperator == ')'){
+	printf("found close paren. Manually popping operators into postfix.\n");
+	while ((next=/*=*/ stack_pop(operator_stack))->valueOperator != '(')
+	  queue_enqueue(postfix_queue,next);
+	goto convertion;
+      }
+      if (stack_size(operator_stack)==0 || element_compare_operators(next,stack_peek(operator_stack)) > 0 || ((Element *) operator_stack)->valueOperator=='('){
 	stack_push(operator_stack, next);
       }else{
-	do{
-	  if (!element_is_parenthesis(stack_peek(operator_stack))){
+        printf("found lower operator %c, popping.\n",next->valueOperator);
+        do{
+	  if (next->valueOperator == ')' && ((Element *) stack_peek(operator_stack))->valueOperator == '('){
+	    printf("found match to close paren. Breaking.\n");
+	    stack_pop(operator_stack);
+	    goto convertion;
+	  }
+	  printf("\tpopped \'%c\'", ((Element *) stack_peek(operator_stack))->valueOperator);
+          if (!element_is_parenthesis(stack_peek(operator_stack))){
+	    printf("and enqued to postfix\n");
 	    queue_enqueue(postfix_queue, stack_pop(operator_stack));
 	  }else{
-	    stack_pop(operator_stack);
+	    printf("so breaking loop.\n");
+	    break;
 	  }
-	}while (stack_size(operator_stack) > 0 && element_compare_operators(next,stack_peek(operator_stack)) <= 0);
+	}while (stack_size(operator_stack) > 0 && element_compare_operators(next,stack_peek(operator_stack)) <= 0 && ((Element *) stack_peek(operator_stack))->valueOperator != '(');
 	stack_push(operator_stack, next);
       }
     }else{
@@ -162,11 +178,18 @@ void* convert(void* infix) {
     }
   }
   while(stack_size(operator_stack)>0){
-    if (!element_is_parenthesis(stack_peek(operator_stack))){
-      queue_enqueue(postfix_queue, stack_pop(operator_stack));
-    }else{
-      stack_pop(operator_stack);//TODO, THIS SHOULD ERROR?
+    if (element_is_parenthesis(stack_peek(operator_stack))){
+      printf("either there is a missing close parenthesis, or my program logic is wrong. %s, %i\n",__FILE__, __LINE__);
+      printf("broke because we found a %c.\n",((Element *) stack_peek(operator_stack))->valueOperator);
+      printf("\n\n\n\n\n");
+      printf("here's the postfix so far: ");
+      printElementQueue(postfix_queue);
+      printf("\n and here's the remaining operator_stack: ");
+      printElementQueue(operator_stack);
+      printf("\n");
+      exit(EXIT_FAILURE);
     }
+    queue_enqueue(postfix_queue, stack_pop(operator_stack));
   }
   return postfix_queue;
 }
