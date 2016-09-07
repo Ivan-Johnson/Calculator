@@ -47,18 +47,17 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     return text;
   case ELEMENT_TYPE_VARIABLE:
     /*
-    totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariable);
+    totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariableName);
     /*/
-    totalLength = snprintf(text, defaultLength, "%s", e->valueVariable);
+    totalLength = snprintf(text, defaultLength, "%s", e->valueVariableName);
     //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
     free(text);
     totalLength++; //to make space for the NULL char
     text = malloc(sizeof(char)*totalLength);
-    snprintf(text, totalLength, "(var) %s", e->valueVariable);
+    snprintf(text, totalLength, "(var) %s", e->valueVariableName);
     return text;
-    //printf("(variable named) %s\n",e->valueVariable);
   case ELEMENT_TYPE_OPERATOR:
     /*
     totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
@@ -74,7 +73,7 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     return text;
   default:
     printf("ERROR: trying to print an element that has no type. file: %s line: %i\n", __FILE__, __LINE__);
-    printf("this elements data: valDoub %f, valStr %s, valVar %s, valOp \'%c\'\n", e->valueDouble, e->valueString, e->valueVariable, e->valueOperator);
+    printf("this elements data: valDoub %f, valStr %s, valVarName %s, valOp \'%c\'\n", e->valueDouble, e->valueString, e->valueVariableName, e->valueOperator);
     exit(EXIT_FAILURE);
   };
 }
@@ -115,7 +114,8 @@ Element *new_Element_string(char* string) {
 Element *new_Element_variable(char* variableName) {
   Element *e = newElement();
   e->type = ELEMENT_TYPE_VARIABLE;
-  e->valueVariable = variableName;
+  e->valueVariableName = variableName;
+  e->valueVariableValue = NULL;
   return e;
 }
 
