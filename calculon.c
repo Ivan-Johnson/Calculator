@@ -18,18 +18,6 @@ const char* FLAG_PRINTPOSTFIX = "d";
 //TODO FREE THINGS WHEN DONE WITH THEM. WHEN FREEING ELEMENTS BE SURE TO FREE THEIR STRINGS
 //TODO SUBMISSION PASSWORD IS "seventeen?"
 
-/*
-  char* strCat (char* arg1, char* arg2){
-  char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
-  if (c == 0){
-  printf("out of memory\n");
-  exit(EXIT_FAILURE);
-  }
-  sprintf(c,"%s%s",arg1,arg2);
-  return c;
-  }
-//*/
-
 typedef struct {
   bool printName;
   bool printPostfix;
@@ -154,19 +142,15 @@ void* convert(void* infix) {
       if (stack_size(operator_stack)==0 || element_compare_operators(next,stack_peek(operator_stack)) > 0 || ((Element *) operator_stack)->valueOperator=='('){
 	stack_push(operator_stack, next);
       }else{
-        printf("found lower operator %c, popping.\n",next->valueOperator);
         do{
 	  if (next->valueOperator == ')' && ((Element *) stack_peek(operator_stack))->valueOperator == '('){
 	    printf("found match to close paren. Breaking.\n");
 	    stack_pop(operator_stack);
 	    goto convertion;
 	  }
-	  printf("\tpopped \'%c\'", ((Element *) stack_peek(operator_stack))->valueOperator);
           if (!element_is_parenthesis(stack_peek(operator_stack))){
-	    printf("and enqued to postfix\n");
 	    queue_enqueue(postfix_queue, stack_pop(operator_stack));
 	  }else{
-	    printf("so breaking loop.\n");
 	    break;
 	  }
 	}while (stack_size(operator_stack) > 0 && element_compare_operators(next,stack_peek(operator_stack)) <= 0 && ((Element *) stack_peek(operator_stack))->valueOperator != '(');
@@ -194,12 +178,72 @@ void* convert(void* infix) {
 }
 
 Element* evaluate(void* postfix) {
-  //TODO
   printf("POSTFIX: ");
   printElementQueue(postfix);
-  printf("\n");
-  printf("\n");
-  printf("\n");
+  printf("\n\n\n");
+  
+  
+  void *stack = new_stack();
+  Element *tmpRight, *tmpLeft;
+  Element *this;
+  Element *result;
+  printf("queue size of postfix is %i\n", queue_size(postfix));
+  while(queue_size(postfix) > 0){
+    this = element_deref_variable_type(queue_dequeue(postfix));
+    switch (this->type){
+    case ELEMENT_TYPE_INTEGER:// all values 
+    case ELEMENT_TYPE_DOUBLE: // pushed to
+    case ELEMENT_TYPE_STRING: // the stack
+      printf("adding %s to value stack\n",element_to_string(this)); 
+      stack_push(stack, this);
+      break;
+    case ELEMENT_TYPE_OPERATOR:
+      assert(stack_size(stack) >= 2);
+      tmpRight = element_deref_variable_type(stack_pop(stack));
+      tmpLeft = element_deref_variable_type(stack_pop(stack));//TODO DON'T DEREF IF ASSIGNMENT. DON'T ASSERT NOT VAR.
+      assert(element_is_literal(tmpLeft));
+      assert(element_is_literal(tmpRight));
+      
+      
+      switch (this->valueOperator){
+      case '=':
+	printf("assignment has not been implemented yet.");
+	exit(EXIT_FAILURE);
+      case '+':
+	result = element_sum(tmpLeft, tmpRight);
+	break;
+      case '-':
+	result = element_difference(tmpLeft, tmpRight);
+	break;
+      case '*':
+	result = element_product(tmpLeft, tmpRight);
+	break;
+      case '/':
+	result = element_quotient(tmpLeft, tmpRight);
+	break;
+      case '%':
+	result = element_modulo(tmpLeft, tmpRight);
+	break;
+      case '^':
+	result = element_exponentiate(tmpLeft, tmpRight);
+	break;
+      default:
+	printf("Trying to compute unknown operator \'%c\'",this->valueOperator);
+	exit(EXIT_FAILURE);
+      }
+      assert(result != NULL);
+      assert(element_is_literal(result));
+      stack_push(stack, result);
+      break;
+    case ELEMENT_TYPE_VARIABLE:
+      printf("found variable. this should never happen.");
+      exit(EXIT_FAILURE);
+    }
+  }
+  assert(stack_size(stack)==1);
+  printf("\n\n\nFinal result is %s.",element_to_string(stack_peek(stack)));
+  
+  
   return NULL;
 }
 
@@ -207,7 +251,7 @@ int main(int argc, char **argv) {
   parsedArgs *args = processArguments(argc, argv);
   if (args->printName) {
     printf("%s", NAME);
-    return 0;
+    return EXIT_SUCCESS;
   }
   void* infix = readExpression(args->file);
   while (queue_size(infix) != 0) {
@@ -235,7 +279,7 @@ int main(int argc, char **argv) {
     printf("\n"); //separates the expressions to make the output easier to read
     infix = readExpression(args->file);
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 

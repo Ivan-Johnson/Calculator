@@ -2,7 +2,19 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 #include "element.h"
+
+char* concatenate_strings (char* arg1, char* arg2){
+  char *c = malloc(sizeof(char) * (strlen(arg1) + strlen(arg2) + 1));
+  if (c == 0){
+    printf("out of memory\n");
+    exit(EXIT_FAILURE);
+  }
+  sprintf(c,"%s%s",arg1,arg2);
+  return c;
+}
+
 
 char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
   int defaultLength = 15;
@@ -143,3 +155,223 @@ bool element_is_parenthesis(Element* e){
   assert(e->type == ELEMENT_TYPE_OPERATOR);
   return e->valueOperator == '(' || e->valueOperator == ')';
 }
+
+ElementType element_get_effective_type(Element *e){
+  assert(e != NULL);
+  if (e->type == ELEMENT_TYPE_VARIABLE){
+    e = e->valueVariableValue;
+    assert(e != NULL);
+  }
+  return e->type;
+}
+
+Element *element_deref_variable_type(Element *e){
+  return e == NULL ? NULL : e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e;
+}
+
+bool element_is_literal(Element *e){
+  return e->type == ELEMENT_TYPE_DOUBLE || e->type == ELEMENT_TYPE_INTEGER || e->type == ELEMENT_TYPE_STRING;
+}
+
+Element* element_sum (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
+    //then the result is a double.
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(atof(eLeft->valueString) + eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(eLeft->valueDouble + atof(eRight->valueString));
+    }
+    if (eLeft->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueInteger + eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueDouble + eRight->valueInteger);
+    }
+    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
+    return new_Element_double(eLeft->valueDouble + eRight->valueDouble);
+  }
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(atoi(eLeft->valueString) + eRight->valueInteger);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(eLeft->valueInteger + atoi(eRight->valueString));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(eLeft->valueInteger+eRight->valueInteger);
+  }
+  assert(eLeft->type == ELEMENT_TYPE_STRING && eRight->type == ELEMENT_TYPE_STRING);
+  return new_Element_string(concatenate_strings(eLeft->valueString, eRight->valueString));
+}
+Element* element_difference (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
+    //then the result is a double.
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(atof(eLeft->valueString) - eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(eLeft->valueDouble - atof(eRight->valueString));
+    }
+    if (eLeft->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueInteger - eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueDouble - eRight->valueInteger);
+    }
+    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
+    return new_Element_double(eLeft->valueDouble - eRight->valueDouble);
+  }
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(atoi(eLeft->valueString) - eRight->valueInteger);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(eLeft->valueInteger - atoi(eRight->valueString));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(eLeft->valueInteger - eRight->valueInteger);
+  }
+  printf("minus is trying to operate on 2 strings. This should never happen.");
+  exit(EXIT_FAILURE);
+}
+Element* element_product (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
+    //then the result is a double.
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(atof(eLeft->valueString) * eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(eLeft->valueDouble * atof(eRight->valueString));
+    }
+    if (eLeft->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueInteger * eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueDouble * eRight->valueInteger);
+    }
+    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
+    return new_Element_double(eLeft->valueDouble * eRight->valueDouble);
+  }
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(atoi(eLeft->valueString) * eRight->valueInteger);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(eLeft->valueInteger * atoi(eRight->valueString));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(eLeft->valueInteger * eRight->valueInteger);
+  }
+  printf("multiplication is trying to operate on 2 strings. This should never happen.");
+  exit(EXIT_FAILURE);
+}
+
+Element* element_quotient (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
+    //then the result is a double.
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(atof(eLeft->valueString) / eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(eLeft->valueDouble / atof(eRight->valueString));
+    }
+    if (eLeft->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueInteger / eRight->valueDouble);
+    }
+    if (eRight->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(eLeft->valueDouble / eRight->valueInteger);
+    }
+    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
+    return new_Element_double(eLeft->valueDouble / eRight->valueDouble);
+  }
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(atoi(eLeft->valueString) / eRight->valueInteger);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(eLeft->valueInteger / atoi(eRight->valueString));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(eLeft->valueInteger / eRight->valueInteger);
+  }
+  printf("division is trying to operate on 2 strings. This should never happen.");
+  exit(EXIT_FAILURE);
+}
+
+Element* element_modulo (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  assert(eLeft->type != ELEMENT_TYPE_DOUBLE && eLeft->type != ELEMENT_TYPE_DOUBLE);
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(atoi(eLeft->valueString) % eRight->valueInteger);
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(eLeft->valueInteger % atoi(eRight->valueString));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(eLeft->valueInteger % eRight->valueInteger);
+  }
+  printf("mod is trying to operate on 2 strings. This should never happen.");
+  exit(EXIT_FAILURE);
+}
+
+Element* element_exponentiate (Element *eLeft, Element *eRight){
+  eLeft = element_deref_variable_type(eLeft);
+  eRight = element_deref_variable_type(eRight);
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));
+  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
+    //then the result is a double.
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(pow(atof(eLeft->valueString), eRight->valueDouble));
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_double(pow(eLeft->valueDouble, atof(eRight->valueString)));
+    }
+    if (eLeft->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(pow(eLeft->valueInteger, eRight->valueDouble));
+    }
+    if (eRight->type == ELEMENT_TYPE_INTEGER){
+      return new_Element_double(pow(eLeft->valueDouble, eRight->valueInteger));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
+    return new_Element_double(pow(eLeft->valueDouble, eRight->valueDouble));
+  }
+  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
+    //then the result is an integer
+    if (eLeft->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(pow(atoi(eLeft->valueString), eRight->valueInteger));
+    }
+    if (eRight->type == ELEMENT_TYPE_STRING){
+      return new_Element_integer(pow(eLeft->valueInteger, atoi(eRight->valueString)));
+    }
+    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);    
+    return new_Element_integer(pow(eLeft->valueInteger, eRight->valueInteger));
+  }
+  printf("minus is trying to operate on 2 strings. This should never happen.");
+  exit(EXIT_FAILURE);
+  return NULL;//TODO
+}
+
+
+
+
