@@ -1,4 +1,4 @@
-OBJS = scanner.o element.o linked_list.o queue.o stack.o calculon.o
+OBJS = scanner.o element.o linked_list.o queue.o stack.o calculon.o binaryTree.o binarySearchTree.o
 OPTS = -Wall -Werror -O2 -g -std=c99
 
 calculon : $(OBJS)
@@ -6,8 +6,14 @@ calculon : $(OBJS)
 
 .PHONY : clean test
 
-calculon.o : calculon.c
+calculon.o : calculon.c scanner.h linked_list.h queue.h element.h stack.h binaryTree.o
 		gcc $(OPTS) -c calculon.c
+
+binaryTree.o : binaryTree.c binaryTree.h
+		gcc $(OPTS) -c binaryTree.c
+
+binarySearchTree.o : binarySearchTree.c binarySearchTree.h
+		gcc $(OPTS) -c binarySearchTree.c
 
 element.o : element.c element.h
 		gcc $(OPTS) -c element.c

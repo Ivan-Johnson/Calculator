@@ -10,6 +10,8 @@
 #include "queue.h"
 #include "element.h"
 #include "stack.h"
+#include "binaryTree.h"
+#include "binarySearchTree.h"
 
 const char* NAME = "Ivan T. Johnson";
 const char* FLAG_SHOWNAME = "v";
