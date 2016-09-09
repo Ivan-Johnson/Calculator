@@ -50,7 +50,7 @@ void showUsage(char *progName) {
   printf("Usage: %s [option] [filename]\n", progName);
 }
 
-void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING IN
+void printElementQueue(void *queue) {
   Element *e;
   printf("PRINTING QUEUE\n");
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
@@ -209,11 +209,6 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
 
       switch (this->valueOperator) {
       case '=':
-        /*
-        printf("assignment has not been implemented yet.\n");
-        printf("Trying to assign %s to %s.\n", element_to_string(tmpRight), element_to_string(tmpLeft));
-        exit(EXIT_FAILURE);
-        //*/
         assert(tmpLeft->type == ELEMENT_TYPE_VARIABLE);
 	if (tmpRight->type == ELEMENT_TYPE_VARIABLE)
 	  tmpRight = element_get_effective_value(tmpRight);//gets the value of the variable
@@ -224,7 +219,7 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
           exit(EXIT_FAILURE);
         }
         actualVariable->valueVariableValue = tmpRight;
-        result = actualVariable->valueVariableValue; //TODO by setting the result pointer like this, do I run the risk of the variable's value being changed unintentionally?
+        result = actualVariable->valueVariableValue;
         break;
       case '+':
         tmpLeft = get_variables_element(tmpLeft);
@@ -290,7 +285,6 @@ int main(int argc, char **argv) {
       Element* var = queue_peek(infix);
       assert(var->type == ELEMENT_TYPE_VARIABLE);
 
-      //TODO create the variable var
       BST_insert(treeVar, var, &wrapper_element_compare_variable_names);
 
       if (queue_size(infix) == 1) {
