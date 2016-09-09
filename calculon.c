@@ -19,6 +19,8 @@ const char* FLAG_PRINTPOSTFIX = "d";
 
 //TODO FREE THINGS WHEN DONE WITH THEM. WHEN FREEING ELEMENTS BE SURE TO FREE THEIR STRINGS
 //TODO SUBMISSION PASSWORD IS "seventeen?"
+//TODO MAKE CONSISTENT USE OF EXTERN
+//TODO DO ALL TODOS
 
 typedef struct {
   bool printName;
@@ -39,7 +41,6 @@ Element *get_actual_variable(binary_search_tree *variables, Element *e) {
     return actualVariable;
   } else
     return e;
-  //  return e == NULL ? NULL : (e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e);
 }
 
 Element *get_variables_element(Element *e) {
@@ -187,7 +188,6 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
   Element *tmpRight, *tmpLeft;
   Element *this;
   Element *result;
-  Element *tmp;
   while (queue_size(postfix) > 0) {
     this = queue_dequeue(postfix);
     assert(this != NULL);
@@ -198,9 +198,7 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
       stack_push(stack, this);
       break;
     case ELEMENT_TYPE_VARIABLE:
-      tmp = get_actual_variable(variables, this); //TODO THIS IS A TERRIBLE VARIABLE NAME
-      assert(tmp != NULL);
-      stack_push(stack, tmp);
+      stack_push(stack, get_actual_variable(variables, this));
       break;
     case ELEMENT_TYPE_OPERATOR:
       assert(stack_size(stack) >= 2);
@@ -218,7 +216,9 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
         exit(EXIT_FAILURE);
         //*/
         assert(tmpLeft->type == ELEMENT_TYPE_VARIABLE);
-        assert(element_is_literal(tmpRight)); //because '=' is lowest priority operator, right should have already been evaluated to a literal
+	if (tmpRight->type == ELEMENT_TYPE_VARIABLE)
+	  tmpRight = element_get_effective_value(tmpRight);//gets the value of the variable
+        assert(element_is_literal(tmpRight)); //because '=' is lowest priority operator, right should have already been evaluated to a literal/variable
         Element *actualVariable = BST_get(variables, tmpLeft, &wrapper_element_compare_variable_names);
         if (actualVariable == NULL) {
           printf("undeclared variable \"%s\" was found.", tmpLeft->valueVariableName);
@@ -268,13 +268,13 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
     }
   }
   assert(stack_size(stack) == 1);
-  return stack_pop(stack);
+  return element_get_effective_value(stack_pop(stack));
 }
 
 int main(int argc, char **argv) {
   parsedArgs *args = processArguments(argc, argv);
   if (args->printName) {
-    printf("%s", NAME);
+    printf("%s\n", NAME);
     return EXIT_SUCCESS;
   }
   binary_search_tree *treeVar = new_binary_search_tree();
@@ -295,10 +295,8 @@ int main(int argc, char **argv) {
       BST_insert(treeVar, var, &wrapper_element_compare_variable_names);
 
       if (queue_size(infix) == 1) {
-        //ie. if variable is declared but not initiated
-        //TODO SHOULD NEVER HAPPEN?
-        infix = readExpression(args->file);
-        continue;
+	printf("ERROR: variable is being declared but not initiated. This should never happen.");
+	exit(EXIT_FAILURE);
       }
       front = (Element *) queue_peek(infix);
     }
