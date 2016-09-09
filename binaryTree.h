@@ -9,17 +9,17 @@ struct binary_tree {
 
 typedef struct binary_tree binary_tree;
 
-binary_tree* new_binary_tree(binary_tree *left, binary_tree *right, void *data);
+extern binary_tree* new_binary_tree(binary_tree *left, binary_tree *right, void *data);
 
-bool setData(binary_tree *tree, void *data);
-bool setLeft(binary_tree *tree, binary_tree *left);
-bool setRight(binary_tree *tree, binary_tree *right);
+extern bool setData(binary_tree *tree, void *data);
+extern bool setLeft(binary_tree *tree, binary_tree *left);
+extern bool setRight(binary_tree *tree, binary_tree *right);
 
-void* getData(binary_tree *tree);
-binary_tree* getLeft(binary_tree *tree);
-binary_tree* getRight(binary_tree *tree);
+extern void* getData(binary_tree *tree);
+extern binary_tree* getLeft(binary_tree *tree);
+extern binary_tree* getRight(binary_tree *tree);
 
-void traversePreorder(binary_tree *tree, void (*function)(void *data));
-void traverseInorder(binary_tree *tree, void (*function)(void *data));
-void traversePostorder(binary_tree *tree, void (*function)(void *data));
+extern void traversePreorder(binary_tree *tree, void (*function)(void *data));
+extern void traverseInorder(binary_tree *tree, void (*function)(void *data));
+extern void traversePostorder(binary_tree *tree, void (*function)(void *data));
 #endif
