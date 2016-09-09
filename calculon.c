@@ -28,10 +28,14 @@ typedef struct {
 } parsedArgs;
 
 int wrapper_element_compare_variable_names(void *v1, void *v2) {
+  //the binary search tree needs a void* void* function in order to insert things in order, and to find things.
+  //this function wraps the element's Element* Element* comparison into the void* void*
   return element_compare_variable_names((Element *) v1, (Element *) v2);
 }
 
 Element *get_actual_variable(binary_search_tree *variables, Element *e) {
+  //given an element of type variable that has a variable name,
+  //returns an element of type variable (found in given BST) that also has a pointer to the element which stores that variable name's value
   if (e == NULL)
     return NULL;
   if (e->type == ELEMENT_TYPE_VARIABLE) {
@@ -39,25 +43,23 @@ Element *get_actual_variable(binary_search_tree *variables, Element *e) {
     assert(actualVariable != NULL);
     return actualVariable;
   } else
-    return e;
-}
-
-Element *get_variables_element(Element *e) {
-  return e == NULL ? NULL : e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e;
-}
-
-void showUsage(char *progName) {
-  printf("Usage: %s [option] [filename]\n", progName);
+    return e;//should never be executed, but just in case.
 }
 
 void printElementQueue(void *queue) {
   Element *e;
-  printf("PRINTING QUEUE\n");
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
     e = linked_list_get(queue, i);
-    printf(" %s ", element_to_string(e));
+    element_print(e, stdout);
+    if (i != 0)//if not last time through loop
+      printf(" ");
+    else
+      printf("\n");
   }
-  printf("\n");
+}
+
+void showUsage(char *progName) {
+  printf("Usage: %s [option] [filename]\n", progName);
 }
 
 parsedArgs *processArguments(int argc, char **argv) {
@@ -222,33 +224,33 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
         result = actualVariable->valueVariableValue;
         break;
       case '+':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_sum(tmpLeft, tmpRight);
         break;
       case '-':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_difference(tmpLeft, tmpRight);
         break;
       case '*':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_product(tmpLeft, tmpRight);
         break;
       case '/':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_quotient(tmpLeft, tmpRight);
         break;
       case '%':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_modulo(tmpLeft, tmpRight);
         break;
       case '^':
-        tmpLeft = get_variables_element(tmpLeft);
-        tmpRight = get_variables_element(tmpRight);
+        tmpLeft = element_get_effective_value(tmpLeft);
+        tmpRight = element_get_effective_value(tmpRight);
         result = element_exponentiate(tmpLeft, tmpRight);
         break;
       default:
@@ -274,9 +276,6 @@ int main(int argc, char **argv) {
   binary_search_tree *treeVar = new_binary_search_tree();
   void* infix = readExpression(args->file);
 
-  void *finalPostfix = NULL;
-  Element *finalAnswer = NULL;
-
   while (queue_size(infix) != 0) {
     Element *front = (Element *) queue_peek(infix);
     if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == 'v') {//if declaring variable
@@ -293,15 +292,25 @@ int main(int argc, char **argv) {
       }
       front = (Element *) queue_peek(infix);
     }
-    finalPostfix = convert(infix);
-    finalAnswer = evaluate(finalPostfix, treeVar);
-
+    void *postfix = convert(infix);
 
     infix = readExpression(args->file);
+    
+    if (feof(args->file)){//if this is the last expression
+      if (args->printPostfix) {
+	printElementQueue(postfix);
+	return 0;
+      }else{
+	element_print(evaluate(postfix, treeVar), stdout);
+	printf("\n");
+	return 0;
+      }
+    }
+
+    
+    evaluate(postfix, treeVar);
   }
-  printf("final postfix:"); //TODO QUEUE IS EMPTIED WHILE EVALUATING.
-  printElementQueue(finalPostfix);
-  printf("\nfinal answer: %s\n", element_to_string(finalAnswer));
+
   return EXIT_SUCCESS;
 }
 

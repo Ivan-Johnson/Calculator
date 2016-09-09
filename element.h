@@ -27,7 +27,8 @@ extern Element *new_Element_string(char*);
 extern Element *new_Element_variable(char*);
 extern Element *new_Element_operator(char*);
 
-extern char* element_to_string(Element* e);
+//extern char* element_to_string(Element* e);
+extern void element_print(Element* e, FILE *f);
 extern int element_compare_operators(Element* e1, Element* e2);
 extern bool element_is_parenthesis(Element* e);
 extern Element *element_get_effective_value(Element *e);
