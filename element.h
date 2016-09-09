@@ -8,13 +8,13 @@ enum ElementType {
 typedef enum ElementType ElementType;
 
 struct Element {
-  ElementType type;
-  int valueInteger;
-  double valueDouble;
-  char *valueString; //yes, it is unneccessary to have both String and Variable, but it is more consistent this way.
-  char *valueVariableName;
-  struct Element *valueVariableValue;
-  char valueOperator;
+    ElementType type;
+    int valueInteger;
+    double valueDouble;
+    char *valueString; //yes, it is unneccessary to have both String and Variable, but it is more consistent this way.
+    char *valueVariableName;
+    struct Element *valueVariableValue;
+    char valueOperator;
 };
 typedef struct Element Element;
 
@@ -35,11 +35,11 @@ extern bool element_is_literal(Element *e);
 
 extern int element_compare_variable_names(Element *e1, Element *e2);
 
-extern Element* element_sum (Element *eLeft, Element *eRight);
-extern Element* element_difference (Element *eLeft, Element *eRight);
-extern Element* element_product (Element *eLeft, Element *eRight);
-extern Element* element_quotient (Element *eLeft, Element *eRight);
-extern Element* element_modulo (Element *eLeft, Element *eRight);
-extern Element* element_exponentiate (Element *eLeft, Element *eRight);
+extern Element* element_sum(Element *eLeft, Element *eRight);
+extern Element* element_difference(Element *eLeft, Element *eRight);
+extern Element* element_product(Element *eLeft, Element *eRight);
+extern Element* element_quotient(Element *eLeft, Element *eRight);
+extern Element* element_modulo(Element *eLeft, Element *eRight);
+extern Element* element_exponentiate(Element *eLeft, Element *eRight);
 
 #endif
