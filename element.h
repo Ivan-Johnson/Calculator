@@ -30,7 +30,7 @@ extern Element *new_Element_operator(char*);
 extern char* element_to_string(Element* e);
 extern int element_compare_operators(Element* e1, Element* e2);
 extern bool element_is_parenthesis(Element* e);
-extern ElementType element_get_effective_type(Element *e);
+extern Element *element_get_effective_value(Element *e);
 extern bool element_is_literal(Element *e);
 
 extern int element_compare_variable_names(Element *e1, Element *e2);

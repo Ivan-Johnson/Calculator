@@ -23,8 +23,8 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS //TODO have this 
   switch (e->type) {
   case ELEMENT_TYPE_INTEGER:
     /*
-    totalLength = snprintf(text, defaultLength, "(int) %i", e->valueInteger);
-    /*/
+      totalLength = snprintf(text, defaultLength, "(int) %i", e->valueInteger);
+      /*/
     totalLength = snprintf(text, defaultLength, "%i", e->valueInteger);
     //*/
     if (totalLength >= 0 && totalLength < defaultLength)
@@ -36,8 +36,8 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS //TODO have this 
     return text;
   case ELEMENT_TYPE_DOUBLE:
     /*
-    totalLength = snprintf(text, defaultLength, "(double) %f", e->valueDouble);
-    /*/
+      totalLength = snprintf(text, defaultLength, "(double) %f", e->valueDouble);
+      /*/
     printf("ACTUAL VALUE IS %f\n", e->valueDouble);
     totalLength = snprintf(text, defaultLength, "%f", e->valueDouble);
     //*/
@@ -59,8 +59,8 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS //TODO have this 
     return text;
   case ELEMENT_TYPE_VARIABLE:
     /*
-    totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariableName);
-    /*/
+      totalLength = snprintf(text, defaultLength, "(var) %s", e->valueVariableName);
+      /*/
     totalLength = snprintf(text, defaultLength, "%s", e->valueVariableName);
     //*/
     if (totalLength >= 0 && totalLength < defaultLength)
@@ -72,8 +72,8 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS //TODO have this 
     return text;
   case ELEMENT_TYPE_OPERATOR:
     /*
-    totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
-    /*/
+      totalLength = snprintf(text, defaultLength, "(operator) %c", e->valueOperator);
+      /*/
     totalLength = snprintf(text, defaultLength, "%c", e->valueOperator);
     //*/
     if (totalLength >= 0 && totalLength < defaultLength)
@@ -156,13 +156,11 @@ bool element_is_parenthesis(Element* e) {
   return e->valueOperator == '(' || e->valueOperator == ')';
 }
 
-ElementType element_get_effective_type(Element *e) {
-  assert(e != NULL);
-  if (e->type == ELEMENT_TYPE_VARIABLE) {
+Element *element_get_effective_value(Element *e) {
+  if (e != NULL && e->type == ELEMENT_TYPE_VARIABLE) {
     e = e->valueVariableValue;
-    assert(e != NULL);
   }
-  return e->type;
+  return e;
 }
 
 bool element_is_literal(Element *e) {
@@ -170,195 +168,272 @@ bool element_is_literal(Element *e) {
   return e->type == ELEMENT_TYPE_DOUBLE || e->type == ELEMENT_TYPE_INTEGER || e->type == ELEMENT_TYPE_STRING;
 }
 
-Element* element_sum(Element *eLeft, Element *eRight) {//TODO would it be more elegant to have nested switch statments...?
-  assert(eLeft != NULL && eRight != NULL);
-  assert(eLeft != NULL && eRight != NULL);
-  assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE) {
-    //then the result is a double.
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(atof(eLeft->valueString) + eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(eLeft->valueDouble + atof(eRight->valueString));
-    }
-    if (eLeft->type == ELEMENT_TYPE_INTEGER) {
-      return new_Element_double(eLeft->valueInteger + eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_INTEGER) {
+void operation_failure(char *operation){
+  printf("Trying to %s unknown combination of element types", operation);
+  exit(EXIT_FAILURE);
+}
+
+Element* element_sum(Element *eLeft, Element *eRight) {
+  assert(element_is_literal(eLeft) && element_is_literal(eRight));//assert left & right aren't NULL, and are reals, ints, or strings
+  
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueDouble + eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_double(eLeft->valueDouble + atof(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_double(eLeft->valueDouble + eRight->valueInteger);
+    default:
+      operation_failure("add");
     }
-    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
-    return new_Element_double(eLeft->valueDouble + eRight->valueDouble);
-  }
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueInteger + eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(eLeft->valueInteger + atoi(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(eLeft->valueInteger + eRight->valueInteger);
+    default:
+      operation_failure("add");
+    }
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(atof(eLeft->valueString) + eRight->valueDouble);      
+    case ELEMENT_TYPE_STRING:
+      return new_Element_string(concatenate_strings(eLeft->valueString, eRight->valueString));
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_integer(atoi(eLeft->valueString) + eRight->valueInteger);
+    default:
+      operation_failure("add");
     }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(eLeft->valueInteger + atoi(eRight->valueString));
-    }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(eLeft->valueInteger + eRight->valueInteger);
+  default:
+    operation_failure("add");
   }
-  assert(eLeft->type == ELEMENT_TYPE_STRING && eRight->type == ELEMENT_TYPE_STRING);
-  return new_Element_string(concatenate_strings(eLeft->valueString, eRight->valueString));
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
+  exit(EXIT_FAILURE);
 }
 
 Element* element_difference(Element *eLeft, Element *eRight) {
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE) {
-    //then the result is a double.
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(atof(eLeft->valueString) - eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(eLeft->valueDouble - atof(eRight->valueString));
-    }
-    if (eLeft->type == ELEMENT_TYPE_INTEGER) {
-      return new_Element_double(eLeft->valueInteger - eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_INTEGER) {
+
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueDouble - eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_double(eLeft->valueDouble - atof(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_double(eLeft->valueDouble - eRight->valueInteger);
+    default:
+      operation_failure("subtract");
     }
-    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
-    return new_Element_double(eLeft->valueDouble - eRight->valueDouble);
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueInteger - eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(eLeft->valueInteger - atoi(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(eLeft->valueInteger - eRight->valueInteger);
+    default:
+      operation_failure("subtract");
+    }
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(atof(eLeft->valueString) - eRight->valueDouble);      
+    case ELEMENT_TYPE_STRING:
+      printf("cannot subtract two strings.\n");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_double(atoi(eLeft->valueString) - eRight->valueInteger);
+    default:
+      operation_failure("subtract");
+    }
+  default:
+    operation_failure("subtract");
   }
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(atoi(eLeft->valueString) - eRight->valueInteger);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(eLeft->valueInteger - atoi(eRight->valueString));
-    }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(eLeft->valueInteger - eRight->valueInteger);
-  }
-  printf("minus is trying to operate on 2 strings. This should never happen.");
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
   exit(EXIT_FAILURE);
 }
 
 Element* element_product(Element *eLeft, Element *eRight) {
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE) {
-    //then the result is a double.
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(atof(eLeft->valueString) * eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(eLeft->valueDouble * atof(eRight->valueString));
-    }
-    if (eLeft->type == ELEMENT_TYPE_INTEGER) {
-      return new_Element_double(eLeft->valueInteger * eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_INTEGER) {
+
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueDouble * eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_double(eLeft->valueDouble * atof(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_double(eLeft->valueDouble * eRight->valueInteger);
+    default:
+      operation_failure("multiply");
     }
-    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
-    return new_Element_double(eLeft->valueDouble * eRight->valueDouble);
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueInteger * eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(eLeft->valueInteger * atoi(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(eLeft->valueInteger * eRight->valueInteger);
+    default:
+      operation_failure("multiply");
+    }
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(atof(eLeft->valueString) * eRight->valueDouble);      
+    case ELEMENT_TYPE_STRING:
+      printf("cannot multiply two strings.\n");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_double(atoi(eLeft->valueString) * eRight->valueInteger);
+    default:
+      operation_failure("multiply");
+    }
+  default:
+    operation_failure("multiply");
   }
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(atoi(eLeft->valueString) * eRight->valueInteger);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(eLeft->valueInteger * atoi(eRight->valueString));
-    }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(eLeft->valueInteger * eRight->valueInteger);
-  }
-  printf("multiplication is trying to operate on 2 strings. This should never happen.");
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
   exit(EXIT_FAILURE);
 }
 
 Element* element_quotient(Element *eLeft, Element *eRight) {
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE) {
-    //then the result is a double.
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(atof(eLeft->valueString) / eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(eLeft->valueDouble / atof(eRight->valueString));
-    }
-    if (eLeft->type == ELEMENT_TYPE_INTEGER) {
-      return new_Element_double(eLeft->valueInteger / eRight->valueDouble);
-    }
-    if (eRight->type == ELEMENT_TYPE_INTEGER) {
+
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueDouble / eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_double(eLeft->valueDouble / atof(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_double(eLeft->valueDouble / eRight->valueInteger);
+    default:
+      operation_failure("divide");
     }
-    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
-    return new_Element_double(eLeft->valueDouble / eRight->valueDouble);
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(eLeft->valueInteger / eRight->valueDouble);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(eLeft->valueInteger / atoi(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(eLeft->valueInteger / eRight->valueInteger);
+    default:
+      operation_failure("divide");
+    }
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(atof(eLeft->valueString) / eRight->valueDouble);      
+    case ELEMENT_TYPE_STRING:
+      printf("cannot subtract two strings.\n");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_double(atoi(eLeft->valueString) / eRight->valueInteger);
+    default:
+      operation_failure("divide");
+    }
+  default:
+    operation_failure("divide");
   }
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(atoi(eLeft->valueString) / eRight->valueInteger);
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(eLeft->valueInteger / atoi(eRight->valueString));
-    }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(eLeft->valueInteger / eRight->valueInteger);
-  }
-  printf("division is trying to operate on 2 strings. This should never happen.");
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
   exit(EXIT_FAILURE);
 }
 
 Element* element_modulo(Element *eLeft, Element *eRight) {
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  assert(eLeft->type != ELEMENT_TYPE_DOUBLE && eLeft->type != ELEMENT_TYPE_DOUBLE);
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(atoi(eLeft->valueString) % eRight->valueInteger);
+
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    printf("cannot take mod of a double");
+    exit(EXIT_FAILURE);
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      printf("cannot take mod of a double");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(eLeft->valueInteger % atoi(eRight->valueString));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(eLeft->valueInteger % eRight->valueInteger);
+    default:
+      operation_failure("mod");
     }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(eLeft->valueInteger % atoi(eRight->valueString));
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      printf("cannot take mod of a double");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_STRING:
+      printf("cannot mod one string by another.\n");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_double(atoi(eLeft->valueString) % eRight->valueInteger);
+    default:
+      operation_failure("mod");
     }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(eLeft->valueInteger % eRight->valueInteger);
+  default:
+    operation_failure("mod");
   }
-  printf("mod is trying to operate on 2 strings. This should never happen.");
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
   exit(EXIT_FAILURE);
 }
 
 Element* element_exponentiate(Element *eLeft, Element *eRight) {
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
-  if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE) {
-    //then the result is a double.
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(pow(atof(eLeft->valueString), eRight->valueDouble));
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_double(pow(eLeft->valueDouble, atof(eRight->valueString)));
-    }
-    if (eLeft->type == ELEMENT_TYPE_INTEGER) {
-      return new_Element_double(pow(eLeft->valueInteger, eRight->valueDouble));
-    }
-    if (eRight->type == ELEMENT_TYPE_INTEGER) {
+
+  switch (eLeft->type){
+  case ELEMENT_TYPE_DOUBLE:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(pow(eLeft->valueDouble, eRight->valueDouble));
+    case ELEMENT_TYPE_STRING:
+      return new_Element_double(pow(eLeft->valueDouble, atof(eRight->valueString)));      
+    case ELEMENT_TYPE_INTEGER:
       return new_Element_double(pow(eLeft->valueDouble, eRight->valueInteger));
+    default:
+      operation_failure("exponent");
     }
-    assert(eLeft->type == ELEMENT_TYPE_DOUBLE && eRight->type == ELEMENT_TYPE_DOUBLE);
-    return new_Element_double(pow(eLeft->valueDouble, eRight->valueDouble));
+  case ELEMENT_TYPE_INTEGER:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(pow(eLeft->valueInteger, eRight->valueDouble));
+    case ELEMENT_TYPE_STRING:
+      return new_Element_integer(pow(eLeft->valueInteger, atoi(eRight->valueString)));      
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_integer(pow(eLeft->valueInteger, eRight->valueInteger));
+    default:
+      operation_failure("exponent");
+    }
+  case ELEMENT_TYPE_STRING:
+    switch (eRight->type){
+    case ELEMENT_TYPE_DOUBLE:
+      return new_Element_double(pow(atof(eLeft->valueString), eRight->valueDouble));      
+    case ELEMENT_TYPE_STRING:
+      printf("cannot raise one string to the power of another strings.\n");
+      exit(EXIT_FAILURE);
+    case ELEMENT_TYPE_INTEGER:
+      return new_Element_double(pow(atoi(eLeft->valueString), eRight->valueInteger));
+    default:
+      operation_failure("exponent");
+    }
+  default:
+    operation_failure("exponent");
   }
-  if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER) {
-    //then the result is an integer
-    if (eLeft->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(pow(atoi(eLeft->valueString), eRight->valueInteger));
-    }
-    if (eRight->type == ELEMENT_TYPE_STRING) {
-      return new_Element_integer(pow(eLeft->valueInteger, atoi(eRight->valueString)));
-    }
-    assert(eLeft->type == ELEMENT_TYPE_INTEGER && eRight->type == ELEMENT_TYPE_INTEGER);
-    return new_Element_integer(pow(eLeft->valueInteger, eRight->valueInteger));
-  }
-  printf("minus is trying to operate on 2 strings. This should never happen.");
+  printf("The compiler is so dumb, it demands I insert this dead code.\n");
   exit(EXIT_FAILURE);
-  return NULL; //TODO
 }
 
 int element_compare_variable_names(Element *e1, Element *e2) {
