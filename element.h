@@ -31,8 +31,9 @@ extern char* element_to_string(Element* e);
 extern int element_compare_operators(Element* e1, Element* e2);
 extern bool element_is_parenthesis(Element* e);
 extern ElementType element_get_effective_type(Element *e);
-extern Element *element_deref_variable_type(Element *e);
 extern bool element_is_literal(Element *e);
+
+extern int element_compare_variable_names(Element *e1, Element *e2);
 
 extern Element* element_sum (Element *eLeft, Element *eRight);
 extern Element* element_difference (Element *eLeft, Element *eRight);

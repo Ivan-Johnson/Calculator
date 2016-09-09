@@ -26,15 +26,27 @@ typedef struct {
   FILE* file;
 } parsedArgs;
 
-void showUsage(char *progName) {
-  printf("Usage: %s [option] [filename]\n", progName);
+int wrapper_element_compare_variable_names(void *v1, void *v2){
+  return element_compare_variable_names((Element *) v1, (Element *) v2);
+}
+Element *get_actual_variable(binary_search_tree *variables, Element *e){
+  if (e == NULL)
+    return NULL;
+  if (e->type == ELEMENT_TYPE_VARIABLE){
+    Element *actualVariable = BST_get(variables, e, &wrapper_element_compare_variable_names);
+    assert(actualVariable != NULL);
+    return actualVariable;
+  }else
+    return e;
+  //  return e == NULL ? NULL : (e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e);
 }
 
-void validateMemory(void* pointer) {//TODO DELETE THIS FUNCTION. OR AT LEAST INLINE IT.
-  if (pointer == NULL) {
-    printf("out of memory\n");
-    exit(EXIT_FAILURE);
-  }
+Element *get_variables_element(Element *e){
+  return e == NULL ? NULL : e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e;
+}
+
+void showUsage(char *progName) {
+  printf("Usage: %s [option] [filename]\n", progName);
 }
 
 void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING IN
@@ -42,17 +54,13 @@ void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING 
   printf("PRINTING QUEUE\n");
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
     e = linked_list_get(queue, i);
-    /*
-      printf("%i: %s\n", i, element_to_string(e));
-      /*/
-    printf("%s ",element_to_string(e));
-    //*/
+    printf("\t%s\n",element_to_string(e));
   }
 }
 
 parsedArgs *processArguments(int argc, char **argv) {
   parsedArgs *args = malloc(sizeof(parsedArgs));
-  validateMemory(args);
+  assert(args != NULL);
   args->printName = false;
   args->printPostfix = false;
   args->file = NULL;
@@ -123,32 +131,26 @@ void* readExpression(FILE *f) {
 }
 
 void* convert(void* infix) {
-  //TODO
   void* operator_stack = new_stack();
   void* postfix_queue = new_queue();
   Element *next;
-  printf("INFIX: ");
   printElementQueue(infix);
-  printf("\n");
-  printf("\n");
- convertion:
+ dengo:
   while (queue_size(infix) > 0) {
     next = queue_dequeue(infix);
     if (next->type == ELEMENT_TYPE_OPERATOR){
       if (next->valueOperator == ')'){
-	printf("found close paren. Manually popping operators into postfix.\n");
-	while ((next=/*=*/ stack_pop(operator_stack))->valueOperator != '(')
+	while ((next=/*=*/ stack_pop(operator_stack))->valueOperator != '(')//everything before the first '(' in the stack is popped & enqueed into the postfix queue, then the '(' is popped and discarded.
 	  queue_enqueue(postfix_queue,next);
-	goto convertion;
+	goto dengo;// *nervously checks surroundings for velociraptors*
       }
       if (stack_size(operator_stack)==0 || element_compare_operators(next,stack_peek(operator_stack)) > 0 || ((Element *) operator_stack)->valueOperator=='('){
 	stack_push(operator_stack, next);
       }else{
         do{
 	  if (next->valueOperator == ')' && ((Element *) stack_peek(operator_stack))->valueOperator == '('){
-	    printf("found match to close paren. Breaking.\n");
 	    stack_pop(operator_stack);
-	    goto convertion;
+	    goto dengo;
 	  }
           if (!element_is_parenthesis(stack_peek(operator_stack))){
 	    queue_enqueue(postfix_queue, stack_pop(operator_stack));
@@ -179,54 +181,79 @@ void* convert(void* infix) {
   return postfix_queue;
 }
 
-Element* evaluate(void* postfix) {
-  printf("POSTFIX: ");
-  printElementQueue(postfix);
-  printf("\n\n\n");
-  
-  
+Element* evaluate(void* postfix, binary_search_tree *variables) {
   void *stack = new_stack();
   Element *tmpRight, *tmpLeft;
   Element *this;
   Element *result;
-  printf("queue size of postfix is %i\n", queue_size(postfix));
+  Element *tmp;
   while(queue_size(postfix) > 0){
-    this = element_deref_variable_type(queue_dequeue(postfix));
+    this = queue_dequeue(postfix);
+    assert(this != NULL);
     switch (this->type){
     case ELEMENT_TYPE_INTEGER:// all values 
     case ELEMENT_TYPE_DOUBLE: // pushed to
     case ELEMENT_TYPE_STRING: // the stack
-      printf("adding %s to value stack\n",element_to_string(this)); 
       stack_push(stack, this);
+      break;
+    case ELEMENT_TYPE_VARIABLE:
+      tmp = get_actual_variable(variables, this);//TODO THIS IS A TERRIBLE VARIABLE NAME
+      assert(tmp != NULL);
+      stack_push(stack, tmp);
       break;
     case ELEMENT_TYPE_OPERATOR:
       assert(stack_size(stack) >= 2);
-      tmpRight = element_deref_variable_type(stack_pop(stack));
-      tmpLeft = element_deref_variable_type(stack_pop(stack));//TODO DON'T DEREF IF ASSIGNMENT. DON'T ASSERT NOT VAR.
-      assert(element_is_literal(tmpLeft));
-      assert(element_is_literal(tmpRight));
+
+      tmpRight = stack_pop(stack);
+      tmpLeft = stack_pop(stack);
+      assert(tmpRight != NULL && tmpLeft != NULL);
       
       
       switch (this->valueOperator){
       case '=':
-	printf("assignment has not been implemented yet.");
+	/*
+	printf("assignment has not been implemented yet.\n");
+	printf("Trying to assign %s to %s.\n", element_to_string(tmpRight), element_to_string(tmpLeft));
 	exit(EXIT_FAILURE);
+	//*/
+	assert(tmpLeft->type == ELEMENT_TYPE_VARIABLE);
+	assert(element_is_literal(tmpRight));//because '=' is lowest priority operator, right should have already been evaluated to a literal
+	Element *actualVariable = BST_get(variables, tmpLeft, &wrapper_element_compare_variable_names);
+	if (actualVariable == NULL){
+	  printf("undeclared variable \"%s\" was found.", tmpLeft->valueVariableName);
+	  exit(EXIT_FAILURE);
+	}
+	actualVariable->valueVariableValue = tmpRight;
+	result = actualVariable->valueVariableValue;//TODO by setting the result pointer like this, do I run the risk of the variable's value being changed unintentionally?
+	break;
       case '+':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_sum(tmpLeft, tmpRight);
 	break;
       case '-':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_difference(tmpLeft, tmpRight);
 	break;
       case '*':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_product(tmpLeft, tmpRight);
 	break;
       case '/':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_quotient(tmpLeft, tmpRight);
 	break;
       case '%':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_modulo(tmpLeft, tmpRight);
 	break;
       case '^':
+	tmpLeft = get_variables_element(tmpLeft);
+	tmpRight = get_variables_element(tmpRight);
 	result = element_exponentiate(tmpLeft, tmpRight);
 	break;
       default:
@@ -237,16 +264,12 @@ Element* evaluate(void* postfix) {
       assert(element_is_literal(result));
       stack_push(stack, result);
       break;
-    case ELEMENT_TYPE_VARIABLE:
-      printf("found variable. this should never happen.");
-      exit(EXIT_FAILURE);
     }
   }
   assert(stack_size(stack)==1);
-  printf("\n\n\nFinal result is %s.",element_to_string(stack_peek(stack)));
-  
-  
-  return NULL;
+  Element *final_result = stack_pop(stack);
+  printf("answer is %s.\n",element_to_string(final_result));
+  return final_result;
 }
 
 int main(int argc, char **argv) {
@@ -255,15 +278,20 @@ int main(int argc, char **argv) {
     printf("%s", NAME);
     return EXIT_SUCCESS;
   }
+  binary_search_tree *treeVar = new_binary_search_tree();
   void* infix = readExpression(args->file);
   while (queue_size(infix) != 0) {
     Element *front = (Element *) queue_peek(infix);
-    if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == *ELEMENT_OPERATOR_VARIABLE_DECLARATION) {//it could start with operator '('
+    if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == 'v') {//if declaring variable
+      printf("variable being declared\n");
       queue_dequeue(infix); //removes the "var" operator
       assert(queue_size(infix) > 0);
       Element* var = queue_peek(infix);
       assert(var->type == ELEMENT_TYPE_VARIABLE);
+      
       //TODO create the variable var
+      BST_insert(treeVar, var, &wrapper_element_compare_variable_names);
+      
       if (queue_size(infix) == 1) {
         //ie. if variable is declared but not initiated
         //TODO SHOULD NEVER HAPPEN?
@@ -274,11 +302,10 @@ int main(int argc, char **argv) {
     }
     //TODO EXCEPT MAKE SURE THAT WE'LL BE ABLE TO PRINT OUT THE POSTFIX IF IT'S THE LAST IN THE LIST.
     //TODO REMOVE THIS CODE. ONLY HERE FOR TESTING.
-    evaluate(convert(infix));
+    evaluate(convert(infix), treeVar);
     
     //TODO do we need to do anything if there's an expression that's not being assigned to a variable...? (assuming it's not the last one in the file)
 
-    printf("\n"); //separates the expressions to make the output easier to read
     infix = readExpression(args->file);
   }
   return EXIT_SUCCESS;

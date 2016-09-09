@@ -16,7 +16,7 @@ char* concatenate_strings (char* arg1, char* arg2){
 }
 
 
-char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
+char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS //TODO have this print to an argument file/console instead
   int defaultLength = 15;
   int totalLength;
   char *text = malloc(sizeof(char) * defaultLength);
@@ -39,7 +39,8 @@ char* element_to_string(Element* e) {//TODO CLEAN UP THIS MESS
     /*
     totalLength = snprintf(text, defaultLength, "(double) %f", e->valueDouble);
     /*/
-    totalLength = snprintf(text, defaultLength, "%f(.)", e->valueDouble);
+    printf("ACTUAL VALUE IS %f\n", e->valueDouble);
+    totalLength = snprintf(text, defaultLength, "%f", e->valueDouble);
     //*/
     if (totalLength >= 0 && totalLength < defaultLength)
       return text;
@@ -165,17 +166,14 @@ ElementType element_get_effective_type(Element *e){
   return e->type;
 }
 
-Element *element_deref_variable_type(Element *e){
-  return e == NULL ? NULL : e->type == ELEMENT_TYPE_VARIABLE ? e->valueVariableValue : e;
-}
-
 bool element_is_literal(Element *e){
+  assert(e != NULL);
   return e->type == ELEMENT_TYPE_DOUBLE || e->type == ELEMENT_TYPE_INTEGER || e->type == ELEMENT_TYPE_STRING;
 }
 
-Element* element_sum (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
+Element* element_sum (Element *eLeft, Element *eRight){//TODO would it be more elegant to have nested switch statments...?
+  assert(eLeft != NULL && eRight != NULL);
+  assert(eLeft != NULL && eRight != NULL);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
     //then the result is a double.
@@ -209,8 +207,6 @@ Element* element_sum (Element *eLeft, Element *eRight){
   return new_Element_string(concatenate_strings(eLeft->valueString, eRight->valueString));
 }
 Element* element_difference (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
     //then the result is a double.
@@ -244,8 +240,6 @@ Element* element_difference (Element *eLeft, Element *eRight){
   exit(EXIT_FAILURE);
 }
 Element* element_product (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
     //then the result is a double.
@@ -280,8 +274,6 @@ Element* element_product (Element *eLeft, Element *eRight){
 }
 
 Element* element_quotient (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
     //then the result is a double.
@@ -316,8 +308,6 @@ Element* element_quotient (Element *eLeft, Element *eRight){
 }
 
 Element* element_modulo (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   assert(eLeft->type != ELEMENT_TYPE_DOUBLE && eLeft->type != ELEMENT_TYPE_DOUBLE);
   if (eLeft->type == ELEMENT_TYPE_INTEGER || eRight->type == ELEMENT_TYPE_INTEGER){
@@ -336,8 +326,6 @@ Element* element_modulo (Element *eLeft, Element *eRight){
 }
 
 Element* element_exponentiate (Element *eLeft, Element *eRight){
-  eLeft = element_deref_variable_type(eLeft);
-  eRight = element_deref_variable_type(eRight);
   assert(element_is_literal(eLeft) && element_is_literal(eRight));
   if (eLeft->type == ELEMENT_TYPE_DOUBLE || eRight->type == ELEMENT_TYPE_DOUBLE){
     //then the result is a double.
@@ -372,6 +360,10 @@ Element* element_exponentiate (Element *eLeft, Element *eRight){
   return NULL;//TODO
 }
 
-
+int element_compare_variable_names(Element *e1, Element *e2){
+  assert(e1->type==ELEMENT_TYPE_VARIABLE && e2->type==ELEMENT_TYPE_VARIABLE);
+  assert(e1->valueVariableName != NULL && e2->valueVariableName!=NULL);
+  return strcmp(e1->valueVariableName, e2->valueVariableName);
+}
 
 
