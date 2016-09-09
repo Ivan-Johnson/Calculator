@@ -54,8 +54,9 @@ void printElementQueue(void *queue) {//TODO DELETE THIS FUNCTION BEFORE TURNING 
   printf("PRINTING QUEUE\n");
   for (int i = queue_size(queue) - 1; i >= 0; i--) {
     e = linked_list_get(queue, i);
-    printf("\t%s\n",element_to_string(e));
+    printf(" %s ",element_to_string(e));
   }
+  printf("\n");
 }
 
 parsedArgs *processArguments(int argc, char **argv) {
@@ -134,7 +135,6 @@ void* convert(void* infix) {
   void* operator_stack = new_stack();
   void* postfix_queue = new_queue();
   Element *next;
-  printElementQueue(infix);
  dengo:
   while (queue_size(infix) > 0) {
     next = queue_dequeue(infix);
@@ -267,9 +267,7 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
     }
   }
   assert(stack_size(stack)==1);
-  Element *final_result = stack_pop(stack);
-  printf("answer is %s.\n",element_to_string(final_result));
-  return final_result;
+  return stack_pop(stack);
 }
 
 int main(int argc, char **argv) {
@@ -280,10 +278,13 @@ int main(int argc, char **argv) {
   }
   binary_search_tree *treeVar = new_binary_search_tree();
   void* infix = readExpression(args->file);
+
+  void *finalPostfix = NULL;
+  Element *finalAnswer = NULL;
+  
   while (queue_size(infix) != 0) {
     Element *front = (Element *) queue_peek(infix);
     if (front->type == ELEMENT_TYPE_OPERATOR && front->valueOperator == 'v') {//if declaring variable
-      printf("variable being declared\n");
       queue_dequeue(infix); //removes the "var" operator
       assert(queue_size(infix) > 0);
       Element* var = queue_peek(infix);
@@ -300,14 +301,15 @@ int main(int argc, char **argv) {
       }
       front = (Element *) queue_peek(infix);
     }
-    //TODO EXCEPT MAKE SURE THAT WE'LL BE ABLE TO PRINT OUT THE POSTFIX IF IT'S THE LAST IN THE LIST.
-    //TODO REMOVE THIS CODE. ONLY HERE FOR TESTING.
-    evaluate(convert(infix), treeVar);
+    finalPostfix = convert(infix);
+    finalAnswer = evaluate(finalPostfix, treeVar);
     
-    //TODO do we need to do anything if there's an expression that's not being assigned to a variable...? (assuming it's not the last one in the file)
 
     infix = readExpression(args->file);
   }
+  printf("final postfix:");//TODO QUEUE IS EMPTIED WHILE EVALUATING.
+  printElementQueue(finalPostfix);
+  printf("\nfinal answer: %s\n",element_to_string(finalAnswer));
   return EXIT_SUCCESS;
 }
 
