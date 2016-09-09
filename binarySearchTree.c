@@ -56,8 +56,7 @@ void BST_insert(binary_search_tree *tree, void *data, int (*compare)(void*, void
 void *BST_get(binary_search_tree *tree, void *data, int (*compare)(void*, void*)) {
   assert(data != NULL && tree != NULL && compare != NULL);
   binary_tree *location = getClosest(tree->tree, data, compare);
-  if (location == NULL)
+  if (location == NULL || compare(data, location->data) != 0)
     return NULL;
-  assert(compare(data, location->data) == 0);
   return location->data;
 }

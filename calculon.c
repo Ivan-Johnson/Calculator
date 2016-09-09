@@ -40,7 +40,6 @@ Element *get_actual_variable(binary_search_tree *variables, Element *e) {
     return NULL;
   if (e->type == ELEMENT_TYPE_VARIABLE) {
     Element *actualVariable = BST_get(variables, e, &wrapper_element_compare_variable_names);
-    assert(actualVariable != NULL);
     return actualVariable;
   } else
     return e;//should never be executed, but just in case.
@@ -138,7 +137,7 @@ void* convert(void* infix) {
   void* operator_stack = new_stack();
   void* postfix_queue = new_queue();
   Element *next;
-dengo:
+ dengo:
   while (queue_size(infix) > 0) {
     next = queue_dequeue(infix);
     if (next->type == ELEMENT_TYPE_OPERATOR) {
@@ -199,16 +198,23 @@ Element* evaluate(void* postfix, binary_search_tree *variables) {
       stack_push(stack, this);
       break;
     case ELEMENT_TYPE_VARIABLE:
-      stack_push(stack, get_actual_variable(variables, this));
+      result = get_actual_variable(variables, this);
+      if (result == NULL){
+	printf("variable %s was not declared\n", this->valueVariableName);
+	exit(EXIT_FAILURE);
+      }
+      stack_push(stack, result);
       break;
     case ELEMENT_TYPE_OPERATOR:
       assert(stack_size(stack) >= 2);
 
       tmpRight = stack_pop(stack);
       tmpLeft = stack_pop(stack);
+      
+      
       assert(tmpRight != NULL && tmpLeft != NULL);
-
-
+      
+      
       switch (this->valueOperator) {
       case '=':
         assert(tmpLeft->type == ELEMENT_TYPE_VARIABLE);
