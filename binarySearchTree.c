@@ -12,7 +12,7 @@ binary_search_tree *new_binary_search_tree() {
 
 binary_tree* getClosest(binary_tree *tree, void *data, int (*compare)(void*, void*)) {
   //TODO OPTIMIZE; DON'T RECURSE
-  //TODO WHAT IF ROOT HAS NULL DATA
+  assert(tree != NULL && tree->data != NULL);
   int relativePosition = compare(data, tree->data);
   if (relativePosition < 0) {
     if (tree->left == NULL)
