@@ -12,7 +12,9 @@ binary_search_tree *new_binary_search_tree() {
 
 binary_tree* getClosest(binary_tree *tree, void *data, int (*compare)(void*, void*)) {
   //TODO OPTIMIZE; DON'T RECURSE
-  assert(tree != NULL && tree->data != NULL);
+  assert(tree != NULL);
+  if (tree->data == NULL)
+    return tree;//if we have no variables declared yet.
   int relativePosition = compare(data, tree->data);
   if (relativePosition < 0) {
     if (tree->left == NULL)
@@ -56,7 +58,9 @@ void BST_insert(binary_search_tree *tree, void *data, int (*compare)(void*, void
 void *BST_get(binary_search_tree *tree, void *data, int (*compare)(void*, void*)) {
   assert(data != NULL && tree != NULL && compare != NULL);
   binary_tree *location = getClosest(tree->tree, data, compare);
-  if (location == NULL || compare(data, location->data) != 0)
+  if (location == NULL || location->data == NULL)
+    return NULL;
+  if (compare(data, location->data) != 0)
     return NULL;
   return location->data;
 }
