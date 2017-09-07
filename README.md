@@ -20,7 +20,7 @@ the following ways of invoking Calculon from a POSIX shell are equivalent:
 
     ./calculon in.txt
 
-&nbsp;
+#
 
     cat in.txt | calculon
 
